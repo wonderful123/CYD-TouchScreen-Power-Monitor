@@ -1,0 +1,16 @@
+# core/backlight.yaml
+output:
+  - platform: ledc
+    pin: GPIO2
+    frequency: 1220
+    id: gpio_backlight_pwm
+    # A level of 0 stops the PWM and holds the pin low (no faint glow or glitch
+    # pulse), which also keeps "off" off across light sleep.
+    zero_means_zero: true
+
+light:
+  - platform: monochromatic
+    output: gpio_backlight_pwm
+    name: Display Backlight
+    id: display_backlight
+    restore_mode: ALWAYS_ON

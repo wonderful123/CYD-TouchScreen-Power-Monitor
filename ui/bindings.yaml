@@ -1,0 +1,74 @@
+# ui/bindings.yaml
+# Hands every LVGL widget the C++ views draw into to the view headers, once at boot.
+# This is the only place that maps YAML widget ids to view fields; all drawing logic lives in include/view_*.h.
+# Field order must match the struct declarations (designated initializers).
+script:
+  - id: bind_ui
+    then:
+      - lambda: |-
+          using namespace pwr::ui;
+
+          chrome_widgets = ChromeWidgets{
+            .title = id(hdr_title),
+            .status = id(hdr_status),
+            .rule = id(hdr_rule),
+            .tab_lbl = {id(tab0_lbl), id(tab1_lbl), id(tab2_lbl), id(tab3_lbl)},
+            .tab_underline = {id(tab0_ul), id(tab1_ul), id(tab2_ul), id(tab3_ul)},
+            .bound = true,
+          };
+
+          overview_widgets = OverviewWidgets{
+            .spark_hdr = id(spark_hdr),
+            .row = {
+              OverviewRow{id(chg_v), id(chg_a), id(chg_w), id(chg_ah), id(chg_wh),
+                          id(chg_v1), id(chg_v2), id(chg_a1), id(chg_a2), id(chg_w1), id(chg_w2),
+                          id(chg_spark)->obj, id(chg_zero)},
+              OverviewRow{id(dist_v), id(dist_a), id(dist_w), id(dist_ah), id(dist_wh),
+                          id(dist_v1), id(dist_v2), id(dist_a1), id(dist_a2), id(dist_w1), id(dist_w2),
+                          id(dist_spark)->obj, id(dist_zero)},
+              OverviewRow{id(bat_v), id(bat_a), id(bat_w), id(bat_ah), id(bat_wh),
+                          id(bat_v1), id(bat_v2), id(bat_a1), id(bat_a2), id(bat_w1), id(bat_w2),
+                          id(bat_spark)->obj, id(bat_zero)},
+            },
+            .bound = true,
+          };
+
+          scope_widgets = ScopeWidgets{
+            .line = {id(sc_t0)->obj, id(sc_t1)->obj, id(sc_t2)->obj},
+            .y_label = {id(sc_y0), id(sc_y1), id(sc_y2), id(sc_y3), id(sc_y4)},
+            .x_start = id(sc_x0),
+            .x_mid = id(sc_x1),
+            .metric_chip = {id(chip_v), id(chip_a), id(chip_w)},
+            .metric_label = {id(chip_v_lbl), id(chip_a_lbl), id(chip_w_lbl)},
+            .range_chip = {id(chip_r0), id(chip_r1), id(chip_r2), id(chip_r3)},
+            .range_label = {id(chip_r0_lbl), id(chip_r1_lbl), id(chip_r2_lbl), id(chip_r3_lbl)},
+            .cross = id(sc_cross),
+            .time_label = id(sc_time),
+            .value = {id(sc_val0), id(sc_val1), id(sc_val2)},
+            .touch = id(scope_touch),
+            .bound = true,
+          };
+
+          stats_widgets = StatsWidgets{
+            .cell = {
+              {id(st0_vmin), id(st0_vmax), id(st0_ipk), id(st0_wpk), id(st0_ah), id(st0_wh)},
+              {id(st1_vmin), id(st1_vmax), id(st1_ipk), id(st1_wpk), id(st1_ah), id(st1_wh)},
+              {id(st2_vmin), id(st2_vmax), id(st2_ipk), id(st2_wpk), id(st2_ah), id(st2_wh)},
+            },
+            .balance = {id(cell0), id(cell1), id(cell2), id(cell3), id(cell4), id(cell5), id(cell6), id(cell7)},
+            .bound = true,
+          };
+
+          settings_widgets = SettingsWidgets{
+            .scroll = id(settings_scroll),
+            .bright_val = id(set_bright_val),
+            .dim_val = id(set_dim_val),
+            .timeout_val = id(set_timeout_val),
+            .screen_off_val = id(set_screen_off_val),
+            .sleep_val = id(set_sleep_val),
+            .wake_val = id(set_wake_val),
+            .sleep_switch = id(sleep_switch),
+            .summary = id(set_summary),
+            .uptime = id(set_uptime),
+            .bound = true,
+          };

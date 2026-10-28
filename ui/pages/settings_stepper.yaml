@@ -1,0 +1,116 @@
+# ui/pages/settings_stepper.yaml
+# One stepper row: title + hint on the left, [-] value [+] on the right.
+# Vars: row_y, row_which, row_val_id, row_title, row_hint
+# Tap = one step, hold = repeat (uses the touchscreen's long-press timing).
+obj:
+  x: 0
+  y: ${row_y}
+  width: 480
+  height: 44
+  styles: style_clear
+  scrollable: false
+  widgets:
+    - label:
+        text: "${row_title}"
+        x: 12
+        y: 7
+        width: 244
+        height: 12
+        styles: style_t_col
+
+    - label:
+        text: "${row_hint}"
+        x: 12
+        y: 23
+        width: 244
+        height: 12
+        styles: style_t_hint
+
+    # ---- minus ----
+    - button:
+        x: 260
+        y: 4
+        width: 56
+        height: 36
+        styles: style_step_btn
+        pressed:
+          bg_color: 0x15303A
+          border_color: 0x46D3B5
+        widgets:
+          - obj:
+              align: CENTER
+              width: 14
+              height: 2
+              styles: style_glyph
+              clickable: false
+              scrollable: false
+        on_short_click:
+          then:
+            - script.execute:
+                id: step_setting
+                which: ${row_which}
+                delta: -1
+        on_long_press_repeat:
+          then:
+            - script.execute:
+                id: step_setting
+                which: ${row_which}
+                delta: -1
+
+    # ---- value ----
+    - label:
+        id: ${row_val_id}
+        text: "--"
+        x: 316
+        y: 9
+        width: 96
+        height: 26
+        text_align: CENTER
+        styles: style_t_lg_r
+
+    # ---- plus ----
+    - button:
+        x: 412
+        y: 4
+        width: 56
+        height: 36
+        styles: style_step_btn
+        pressed:
+          bg_color: 0x15303A
+          border_color: 0x46D3B5
+        widgets:
+          - obj:
+              align: CENTER
+              width: 14
+              height: 2
+              styles: style_glyph
+              clickable: false
+              scrollable: false
+          - obj:
+              align: CENTER
+              width: 2
+              height: 14
+              styles: style_glyph
+              clickable: false
+              scrollable: false
+        on_short_click:
+          then:
+            - script.execute:
+                id: step_setting
+                which: ${row_which}
+                delta: 1
+        on_long_press_repeat:
+          then:
+            - script.execute:
+                id: step_setting
+                which: ${row_which}
+                delta: 1
+
+    # ---- row separator ----
+    - obj:
+        x: 12
+        y: 43
+        width: 456
+        height: 1
+        styles: style_rule
+        clickable: false

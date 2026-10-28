@@ -1,0 +1,103 @@
+# Palette: text 0xD3E6EB, dim 0x566E7A, hint 0x3A4F5A
+lvgl:
+  style_definitions:
+    - id: style_t_title
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_letter_space: 2
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_status
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_letter_space: 1
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_tab
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_letter_space: 2
+      text_align: CENTER
+      pad_all: 0
+
+    - id: style_t_col
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_letter_space: 1
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_col_r
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_letter_space: 1
+      text_align: RIGHT
+      pad_all: 0
+
+    - id: style_t_ch
+      text_font: font_xs_b
+      text_letter_space: 1
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_xs
+      text_color: 0x566E7A
+      text_font: font_xs
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_xs_r
+      text_color: 0x566E7A
+      text_font: font_xs
+      text_align: RIGHT
+      pad_all: 0
+
+    - id: style_t_xs_c
+      text_color: 0x566E7A
+      text_font: font_xs
+      text_align: CENTER
+      pad_all: 0
+
+    - id: style_t_hint
+      text_color: 0x3A4F5A
+      text_font: font_xs
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_xl_r
+      text_color: 0xD3E6EB
+      text_font: font_xl
+      text_align: RIGHT
+      pad_all: 0
+
+    - id: style_t_md_r
+      text_color: 0xD3E6EB
+      text_font: font_md
+      text_align: RIGHT
+      pad_all: 0
+
+    - id: style_t_lg
+      text_color: 0xD3E6EB
+      text_font: font_lg
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_lg_r
+      text_color: 0xD3E6EB
+      text_font: font_lg
+      text_align: RIGHT
+      pad_all: 0
+
+    - id: style_t_sm
+      text_color: 0xD3E6EB
+      text_font: font_sm
+      text_align: LEFT
+      pad_all: 0
+
+    - id: style_t_chip
+      text_color: 0x566E7A
+      text_font: font_xs_b
+      text_align: CENTER
+      pad_all: 0

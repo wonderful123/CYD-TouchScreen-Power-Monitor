@@ -1,0 +1,116 @@
+# ui/scripts/settings.yaml
+# Settings page wiring: reads/writes the ESPHome globals and backlight, delegates rules and drawing to include/view_settings.h.
+script:
+  # Render every settings value and the summary line from current state (called on page entry and after each step)
+  - id: sync_settings
+    then:
+      - lambda: |-
+          float br = 0.0f;
+          id(display_backlight).remote_values.as_brightness(&br);
+          pwr::ui::render_settings(pwr::ui::SettingsValues{
+            pwr::ui::brightness_to_pct(br),
+            (int) id(dim_level),
+            (int) id(dim_timeout),
+            (int) id(screen_off_timeout),
+            (int) id(sleep_timeout),
+            (int) id(sleep_wake_interval),
+            (bool) id(screen_off_in_sleep),
+          });
+
+  # Kept under its old name for other scripts; the summary is drawn together with the values.
+  - id: update_settings_summary
+    then:
+      - script.execute: sync_settings
+
+  # System uptime, refreshed once a second. Started by the settings page on_load and
+  # stopped on on_unload, so it only runs while the page is visible.
+  # Uses the 64-bit ESP timer (does not wrap like millis(), keeps counting in light sleep).
+  - id: uptime_loop
+    mode: restart
+    then:
+      - while:
+          condition:
+            lambda: 'return true;'
+          then:
+            - lambda: |-
+                // Nothing is on screen during background BLE sampling wakes
+                if (id(bg_sampling)) return;
+                pwr::ui::render_uptime((uint64_t) (esp_timer_get_time() / 1000000LL));
+            - delay: 1s
+
+  # Live feedback while adjusting the dim level: jump the backlight straight to the
+  # dimmed level, hold it briefly (restarts on every tap), then fade back to the active
+  # level. is_dimmed is deliberately left alone so taps don't trigger a restore flicker
+  # and the screen never gets stuck dim on the settings page.
+  - id: preview_dim_level
+    mode: restart
+    then:
+      - script.stop: fade_backlight
+      - lambda: |-
+          float active = 0.0f;
+          id(display_backlight).remote_values.as_brightness(&active);
+          const float dim = std::min(active, id(dim_level) / 100.0f);
+          id(gpio_backlight_pwm).set_level(id(display_backlight).gamma_correct_lut(dim));
+      - delay: 1500ms
+      - script.execute:
+          id: fade_backlight
+          from_level: !lambda |-
+            float active = 0.0f;
+            id(display_backlight).remote_values.as_brightness(&active);
+            return std::min(active, id(dim_level) / 100.0f);
+          to_level: !lambda |-
+            float active = 0.0f;
+            id(display_backlight).remote_values.as_brightness(&active);
+            return active;
+
+  # Step one setting up/down. `which` is a pwr::ui::Setting (0 brightness, 1 dim level, 2 dim timeout,
+  # 3 sleep delay, 4 wake interval, 5 screen-off delay). delta: +1 / -1. Ranges and steps: view_settings.h.
+  - id: step_setting
+    parameters:
+      which: int
+      delta: int
+    then:
+      - script.execute: reset_dim_timer
+      - lambda: |-
+          using S = pwr::ui::Setting;
+          if (!pwr::ui::setting_valid(which)) return;
+          const S setting = static_cast<S>(which);
+
+          int cur = 0;
+          switch (setting) {
+            case S::Brightness: {
+              float br = 0.0f;
+              id(display_backlight).remote_values.as_brightness(&br);
+              cur = (int) lroundf(br * 100.0f);
+              break;
+            }
+            case S::DimLevel: cur = id(dim_level); break;
+            case S::DimTimeout: cur = id(dim_timeout); break;
+            case S::SleepTimeout: cur = id(sleep_timeout); break;
+            case S::WakeInterval: cur = id(sleep_wake_interval); break;
+            case S::ScreenOffTimeout: cur = id(screen_off_timeout); break;
+          }
+
+          const int v = pwr::ui::setting_step(setting, cur, delta);
+
+          switch (setting) {
+            case S::Brightness: {
+              auto call = id(display_backlight).make_call();
+              call.set_state(true);
+              call.set_brightness(v / 100.0f);
+              call.set_transition_length(0);
+              call.perform();
+              break;
+            }
+            case S::DimLevel: id(dim_level) = v; break;
+            case S::DimTimeout: id(dim_timeout) = v; break;
+            case S::SleepTimeout: id(sleep_timeout) = v; break;
+            case S::WakeInterval: id(sleep_wake_interval) = v; break;
+            case S::ScreenOffTimeout: id(screen_off_timeout) = v; break;
+          }
+      - if:
+          condition:
+            lambda: 'return which == 1;'
+          then:
+            - script.execute: preview_dim_level
+      - script.execute: sync_settings

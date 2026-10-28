@@ -1,0 +1,60 @@
+# ui/fonts.yaml
+substitutions:
+  font_family: Roboto Condensed
+  font_weight_regular: "400"
+  font_weight_bold: "700"
+
+font:
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_regular}
+    id: font_xs
+    size: 10
+    bpp: 4
+    glyphs: &glyph_set ' !"%()@+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_|abcdefghijklmnopqrstuvwxyz°~·–'
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_bold}
+    id: font_xs_b
+    size: 10
+    bpp: 4
+    glyphs: *glyph_set
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_regular}
+    id: font_sm
+    size: 12
+    bpp: 4
+    glyphs: *glyph_set
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_regular}
+    id: font_md
+    size: 14
+    bpp: 4
+    glyphs: *glyph_set
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_regular}
+    id: font_lg
+    size: 20
+    bpp: 4
+    glyphs: *glyph_set
+
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: ${font_weight_regular}
+    id: font_xl
+    size: 24
+    bpp: 4
+    glyphs: *glyph_set

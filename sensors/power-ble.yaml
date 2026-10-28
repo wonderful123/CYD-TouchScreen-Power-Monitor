@@ -1,0 +1,32 @@
+# sensors/power-ble.yaml
+# BLE ingest wiring. Payload decoding lives in include/power_decoder.h, applying it to the model in include/power_ingest.h.
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+    continuous: true
+    interval: 320ms
+    window: 300ms
+
+  on_ble_manufacturer_data_advertise:
+    - manufacturer_id: 'FFFF'
+      then:
+        - lambda: |-
+            // Decode + apply; anything that is not a power packet is ignored.
+            if (!pwr::ingest_advert(x)) return;
+
+            // Timer wake for background sampling only (never at boot or after a touch wake):
+            // record the history tick, update stats, cancel the acquisition timeout and go straight back to sleep.
+            if (id(bg_sampling)) {
+              pwr::tick();
+              pwr::compute_stats();
+              id(bg_ble_acquisition_timeout).stop();
+              id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
+              id(sleep_manager).enter_light_sleep();
+            }
+
+interval:
+  # History ticker while awake. The tick itself only records when a 2.5 s slot has elapsed,
+  # so polling faster than the slot keeps it from drifting or dropping slots.
+  - interval: 500ms
+    then:
+      - lambda: 'pwr::tick();'

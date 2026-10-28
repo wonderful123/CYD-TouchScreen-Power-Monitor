@@ -1,0 +1,43 @@
+# ui/state.yaml
+# UI state globals and high-frequency display/touch refresh intervals.
+globals:
+  - id: cur_page
+    type: int
+    initial_value: '0'
+
+  - id: scope_metric        # 0 = V, 1 = A, 2 = W
+    type: int
+    initial_value: '2'
+
+  - id: scope_range         # 0 = 10 min, 1 = 1 h, 2 = 6 h, 3 = 24 h
+    type: int
+    initial_value: '0'
+
+  - id: scope_cursor        # -1 = no cursor (show active trace tip)
+    type: int
+    initial_value: '-1'
+
+  - id: spark_mode          # Overview sparkline window: 0 = 5 min, 1 = 1 h, 2 = 6 h, 3 = 24 h
+    type: int
+    initial_value: '0'
+
+interval:
+  # Periodic active-page refresh dispatcher
+  - interval: 500ms
+    then:
+      - script.execute: refresh_header
+      - lambda: |-
+          switch (id(cur_page)) {
+            case 0: id(refresh_main).execute(); break;
+            case 1: id(refresh_scope).execute(); break;
+            case 2: id(refresh_stats).execute(); break;
+          }
+
+  # Scope touch cursor polling loop
+  - interval: 80ms
+    then:
+      - lambda: |-
+          if (id(cur_page) != 1) return;
+          if (!pwr::ui::poll_scope_cursor(&id(scope_cursor))) return;
+          id(refresh_scope).execute();
+          if (id(scope_cursor) >= 0) id(reset_dim_timer).execute();

@@ -1,0 +1,196 @@
+# page-scope.yaml
+id: scope_page
+bg_color: 0x05080B
+bg_opa: COVER
+scrollable: false
+
+on_load:
+  then:
+    - script.execute: refresh_scope
+
+widgets:
+  # ---- metric chips (V / A / W) ----------------------------------------------
+  - button:
+      id: chip_v
+      x: 296
+      y: 4
+      width: 22
+      height: 14
+      styles: style_chip
+      border_color: 0x46D3B5
+      clickable: false
+      widgets:
+        - label: {id: chip_v_lbl, text: "V", align: CENTER, styles: style_t_chip, text_color: 0xD3E6EB}
+
+  - button:
+      id: chip_a
+      x: 320
+      y: 4
+      width: 22
+      height: 14
+      styles: style_chip
+      clickable: false
+      widgets:
+        - label: {id: chip_a_lbl, text: "A", align: CENTER, styles: style_t_chip}
+
+  - button:
+      id: chip_w
+      x: 344
+      y: 4
+      width: 22
+      height: 14
+      styles: style_chip
+      clickable: false
+      widgets:
+        - label: {id: chip_w_lbl, text: "W", align: CENTER, styles: style_t_chip}
+
+  # ---- range chips (10M / 1H / 6H / 24H) --------------------------------------
+  - button:
+      id: chip_r0
+      x: 374
+      y: 4
+      width: 26
+      height: 14
+      styles: style_chip
+      clickable: false
+      widgets:
+        - label: {id: chip_r0_lbl, text: "10M", align: CENTER, styles: style_t_chip}
+
+  - button:
+      id: chip_r1
+      x: 400
+      y: 4
+      width: 26
+      height: 14
+      styles: style_chip
+      border_color: 0x46D3B5
+      clickable: false
+      widgets:
+        - label: {id: chip_r1_lbl, text: "1H", align: CENTER, styles: style_t_chip, text_color: 0xD3E6EB}
+
+  - button:
+      id: chip_r2
+      x: 426
+      y: 4
+      width: 26
+      height: 14
+      styles: style_chip
+      clickable: false
+      widgets:
+        - label: {id: chip_r2_lbl, text: "6H", align: CENTER, styles: style_t_chip}
+
+  - button:
+      id: chip_r3
+      x: 452
+      y: 4
+      width: 26
+      height: 14
+      styles: style_chip
+      clickable: false
+      widgets:
+        - label: {id: chip_r3_lbl, text: "24H", align: CENTER, styles: style_t_chip}
+
+  # ---- metric & range cycling touch surfaces ----------------------------------
+  - button:
+      id: metric_touch
+      x: 292
+      y: 0
+      width: 76
+      height: 28
+      styles: style_clear
+      on_click:
+        then:
+          - lambda: 'id(scope_metric) = (id(scope_metric) + 1) % 3;'
+          - script.execute: reset_dim_timer
+          - script.execute: refresh_scope
+
+  - button:
+      id: range_touch
+      x: 370
+      y: 0
+      width: 108
+      height: 28
+      styles: style_clear
+      on_click:
+        then:
+          - lambda: 'id(scope_range) = (id(scope_range) + 1) % 4;'
+          - script.execute: reset_dim_timer
+          - script.execute: refresh_scope
+
+  # ---- grid -------------------------------------------------------------------
+  - obj: {x: 44, y: 30, width: 424, height: 1, styles: style_rule}
+  - obj: {x: 44, y: 74, width: 424, height: 1, styles: style_rule}
+  - obj: {x: 44, y: 118, width: 424, height: 1, styles: style_rule}
+  - obj: {x: 44, y: 162, width: 424, height: 1, styles: style_rule}
+  - obj: {x: 44, y: 206, width: 424, height: 1, styles: style_rule}
+  - obj: {x: 44, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 115, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 185, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 256, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 326, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 397, y: 30, width: 1, height: 177, styles: style_rule}
+  - obj: {x: 468, y: 30, width: 1, height: 177, styles: style_rule}
+
+  # ---- y axis labels ------------------------------------------------------------
+  - label: {id: sc_y0, text: "", x: 4, y: 25, width: 35, height: 12, styles: style_t_xs_r}
+  - label: {id: sc_y1, text: "", x: 4, y: 69, width: 35, height: 12, styles: style_t_xs_r}
+  - label: {id: sc_y2, text: "", x: 4, y: 113, width: 35, height: 12, styles: style_t_xs_r}
+  - label: {id: sc_y3, text: "", x: 4, y: 157, width: 35, height: 12, styles: style_t_xs_r}
+  - label: {id: sc_y4, text: "", x: 4, y: 201, width: 35, height: 12, styles: style_t_xs_r}
+
+  # ---- x axis labels ------------------------------------------------------------
+  - label: {id: sc_x0, text: "-1h", x: 44, y: 210, width: 50, height: 12, styles: style_t_xs}
+  - label: {id: sc_x1, text: "-30m", x: 231, y: 210, width: 50, height: 12, styles: style_t_xs_c}
+  - label: {text: "now", x: 418, y: 210, width: 50, height: 12, styles: style_t_xs_r}
+
+  # ---- traces -------------------------------------------------------------------
+  - line:
+      id: sc_t0
+      x: 44
+      y: 30
+      width: 424
+      height: 176
+      line_width: 1
+      line_color: 0x46D3B5
+      hidden: true
+      points:
+        - 0, 0
+        - 424, 0
+  - line:
+      id: sc_t1
+      x: 44
+      y: 30
+      width: 424
+      height: 176
+      line_width: 1
+      line_color: 0xE8B04A
+      hidden: true
+      points:
+        - 0, 0
+        - 424, 0
+  - line:
+      id: sc_t2
+      x: 44
+      y: 30
+      width: 424
+      height: 176
+      line_width: 1
+      line_color: 0x7AA7FF
+      hidden: true
+      points:
+        - 0, 0
+        - 424, 0
+
+  # ---- cursor + touch surface ---------------------------------------------------
+  - obj: {id: sc_cross, x: 44, y: 30, width: 1, height: 176, styles: style_rule, bg_color: 0x566E7A, hidden: true, clickable: false}
+  - obj: {id: scope_touch, x: 44, y: 30, width: 424, height: 176, styles: style_clear, scrollable: false}
+
+  # ---- readout ------------------------------------------------------------------
+  - label: {id: sc_time, text: "now", x: 12, y: 230, width: 66, height: 12, styles: style_t_col}
+  - label: {text: "CHG", x: 84, y: 230, width: 34, height: 12, styles: style_t_ch, text_color: 0x46D3B5}
+  - label: {id: sc_val0, text: "--", x: 116, y: 229, width: 92, height: 14, styles: style_t_sm}
+  - label: {text: "DIST", x: 212, y: 230, width: 34, height: 12, styles: style_t_ch, text_color: 0xE8B04A}
+  - label: {id: sc_val1, text: "--", x: 248, y: 229, width: 92, height: 14, styles: style_t_sm}
+  - label: {text: "BATT", x: 340, y: 230, width: 34, height: 12, styles: style_t_ch, text_color: 0x7AA7FF}
+  - label: {id: sc_val2, text: "--", x: 376, y: 229, width: 100, height: 14, styles: style_t_sm}
+  

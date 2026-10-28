@@ -1,0 +1,71 @@
+# page-stats.yaml
+id: stats_page
+bg_color: 0x05080B
+bg_opa: COVER
+scrollable: false
+
+widgets:
+  # ---- column headers ---------------------------------------------------------
+  - label: {text: "CH", x: 12, y: 28, width: 30, height: 12, styles: style_t_col}
+  - label: {text: "V MIN", x: 166, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "V MAX", x: 220, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "A PK", x: 276, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "W PK", x: 332, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "AH", x: 378, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "WH", x: 422, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - obj: {x: 8, y: 40, width: 464, height: 1, styles: style_rule}
+
+  # ---- CHG ----------------------------------------------------------------------
+  - obj: {x: 8, y: 48, width: 2, height: 16, styles: style_rule, bg_color: 0x46D3B5}
+  - label: {text: "CHG", x: 16, y: 50, width: 60, height: 14, styles: style_t_ch, text_color: 0x46D3B5}
+  - label: {id: st0_vmin, text: "--", x: 160, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st0_vmax, text: "--", x: 214, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st0_ipk, text: "--", x: 270, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st0_wpk, text: "--", x: 326, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st0_ah, text: "--", x: 372, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st0_wh, text: "--", x: 416, y: 48, width: 56, height: 18, styles: style_t_md_r}
+  - obj: {x: 8, y: 71, width: 464, height: 1, styles: style_rule}
+
+  # ---- DIST ---------------------------------------------------------------------
+  - obj: {x: 8, y: 76, width: 2, height: 16, styles: style_rule, bg_color: 0xE8B04A}
+  - label: {text: "DIST", x: 16, y: 78, width: 60, height: 14, styles: style_t_ch, text_color: 0xE8B04A}
+  - label: {id: st1_vmin, text: "--", x: 160, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st1_vmax, text: "--", x: 214, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st1_ipk, text: "--", x: 270, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st1_wpk, text: "--", x: 326, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st1_ah, text: "--", x: 372, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st1_wh, text: "--", x: 416, y: 76, width: 56, height: 18, styles: style_t_md_r}
+  - obj: {x: 8, y: 99, width: 464, height: 1, styles: style_rule}
+
+  # ---- BATT ---------------------------------------------------------------------
+  - obj: {x: 8, y: 104, width: 2, height: 16, styles: style_rule, bg_color: 0x7AA7FF}
+  - label: {text: "BATT", x: 16, y: 106, width: 60, height: 14, styles: style_t_ch, text_color: 0x7AA7FF}
+  - label: {id: st2_vmin, text: "--", x: 160, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st2_vmax, text: "--", x: 214, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st2_ipk, text: "--", x: 270, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st2_wpk, text: "--", x: 326, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st2_ah, text: "--", x: 372, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - label: {id: st2_wh, text: "--", x: 416, y: 104, width: 56, height: 18, styles: style_t_md_r}
+  - obj: {x: 8, y: 127, width: 464, height: 1, styles: style_rule}
+
+  # ---- battery balance ------------------------------------------------------------
+  - label: {text: "BATTERY BALANCE · 24 H", x: 12, y: 136, width: 300, height: 12, styles: style_t_col}
+  - obj: {x: 8, y: 148, width: 464, height: 1, styles: style_rule}
+
+  - label: {text: "AH IN", x: 12, y: 156, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell0, text: "--", x: 12, y: 169, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "AH OUT", x: 128, y: 156, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell1, text: "--", x: 128, y: 169, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "NET AH", x: 244, y: 156, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell2, text: "--", x: 244, y: 169, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "DATA H", x: 360, y: 156, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell3, text: "--", x: 360, y: 169, width: 110, height: 26, styles: style_t_lg}
+
+  - label: {text: "WH IN", x: 12, y: 200, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell4, text: "--", x: 12, y: 213, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "WH OUT", x: 128, y: 200, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell5, text: "--", x: 128, y: 213, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "NET WH", x: 244, y: 200, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell6, text: "--", x: 244, y: 213, width: 110, height: 26, styles: style_t_lg}
+  - label: {text: "LOAD AVG W", x: 360, y: 200, width: 110, height: 12, styles: style_t_col}
+  - label: {id: cell7, text: "--", x: 360, y: 213, width: 110, height: 26, styles: style_t_lg}

@@ -1,0 +1,48 @@
+# ui/scripts/navigation.yaml
+# Page switching and sparkline window cycling.
+script:
+  - id: goto_page
+    parameters:
+      idx: int
+    then:
+      - script.execute: reset_dim_timer
+      - lambda: |-
+          if (!pwr::ui::select_tab(idx)) return;
+          id(cur_page) = idx;
+
+      - script.execute: refresh_header
+
+      - if:
+          condition:
+            lambda: 'return idx == 0;'
+          then:
+            - lvgl.page.show: main_page
+            - script.execute: refresh_main
+
+      - if:
+          condition:
+            lambda: 'return idx == 1;'
+          then:
+            - lvgl.page.show: scope_page
+            - script.execute: refresh_scope
+
+      - if:
+          condition:
+            lambda: 'return idx == 2;'
+          then:
+            - lvgl.page.show: stats_page
+            - script.execute: refresh_stats
+
+      - if:
+          condition:
+            lambda: 'return idx == 3;'
+          then:
+            - script.execute: sync_settings
+            - lvgl.page.show: settings_page
+
+  # Overview sparkline time-window toggle (5m / 1h / 6h / 24h)
+  - id: cycle_spark
+    then:
+      - lambda: 'id(spark_mode) = (id(spark_mode) + 1) % pwr::ui::SPARK_MODES;'
+      - script.execute: reset_dim_timer
+      - script.execute: refresh_main

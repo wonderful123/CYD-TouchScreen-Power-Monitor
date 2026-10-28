@@ -1,0 +1,49 @@
+# Palette: bg 0x05080B, hairline 0x15202A, charging 0x46D3B5
+lvgl:
+  style_definitions:
+    - id: style_page
+      bg_color: 0x05080B
+      bg_opa: COVER
+      border_width: 0
+      radius: 0
+      pad_all: 0
+
+    - id: style_clear
+      bg_opa: TRANSP
+      border_width: 0
+      radius: 0
+      pad_all: 0
+      shadow_width: 0
+      outline_width: 0
+
+    - id: style_rule
+      bg_color: 0x15202A
+      bg_opa: COVER
+      border_width: 0
+      radius: 0
+      pad_all: 0
+      shadow_width: 0
+
+    - id: style_nav
+      bg_color: 0x05080B
+      bg_opa: COVER
+      border_width: 0
+      radius: 0
+      pad_all: 0
+      shadow_width: 0
+
+    - id: style_underline
+      bg_color: 0x46D3B5
+      bg_opa: COVER
+      border_width: 0
+      radius: 0
+      pad_all: 0
+
+    - id: style_chip
+      bg_opa: TRANSP
+      border_color: 0x15202A
+      border_width: 1
+      radius: 0
+      pad_all: 0
+      shadow_width: 0
+      outline_width: 0

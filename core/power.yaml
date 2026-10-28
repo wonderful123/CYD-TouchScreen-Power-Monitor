@@ -1,0 +1,199 @@
+# core/power.yaml
+globals:
+  # Backlight level (%) when dimmed
+  - id: dim_level
+    type: int
+    restore_value: true
+    initial_value: '20'
+
+  # Idle seconds (after last touch) before dimming
+  - id: dim_timeout
+    type: int
+    restore_value: true
+    initial_value: '30'
+
+  # Seconds after the screen is dimmed before the backlight is switched off.
+  # 0 = never turn the screen off while awake.
+  # Counted from the dim point (same reference as sleep_timeout), so it should be
+  # shorter than sleep_timeout to take effect before light sleep.
+  - id: screen_off_timeout
+    type: int
+    restore_value: true
+    initial_value: '120'
+
+  # Seconds after the screen is dimmed before light sleep.
+  # 0 = never sleep. Everything before this is full 1 Hz capture.
+  - id: sleep_timeout
+    type: int
+    restore_value: true
+    initial_value: '600'
+
+  - id: sleep_wake_interval
+    type: int
+    restore_value: true
+    initial_value: '30'
+
+  - id: is_dimmed
+    type: bool
+    initial_value: 'false'
+
+  # True only while awake on a timer wake purely to capture one BLE packet
+  - id: bg_sampling
+    type: bool
+    initial_value: 'false'
+
+  - id: screen_off_in_sleep
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+light_sleep_touch:
+  id: sleep_manager
+  touch_irq_pin: GPIO18
+  timeout: 0s
+  sleep_duration: 30s
+
+  on_before_sleep:
+    then:
+      - if:
+          condition:
+            lambda: 'return id(screen_off_in_sleep);'
+          then:
+            - output.set_level:
+                id: gpio_backlight_pwm
+                level: 0.0
+      - component.suspend: my_touchscreen
+
+  on_wake:
+    then:
+      - lambda: |-
+          pwr::note_wake();
+          if (id(sleep_manager).is_touch_wakeup()) {
+            id(bg_sampling) = false;
+            // Backlight is not at its active level after sleep; let reset_dim_timer restore it.
+            id(is_dimmed) = true;
+            id(reset_dim_timer).execute();
+          } else {
+            id(bg_sampling) = true;
+            id(bg_ble_acquisition_timeout).execute();
+          }
+      # Only bring the touchscreen back for real (touch) wakes. On background BLE wakes it
+      # stays suspended so phantom touches can't light the screen or cancel sampling.
+      - if:
+          condition:
+            lambda: 'return !id(bg_sampling);'
+          then:
+            - delay: 400ms
+            - component.resume: my_touchscreen
+
+script:
+  # Write the active level straight to the PWM output (the same path the dim/fade/off
+  # code uses), so it works from any state and doesn't depend on the light's own state
+  # or its default transition.
+  - id: restore_backlight
+    then:
+      - lambda: |-
+          float active = 0.0f;
+          id(display_backlight).remote_values.as_brightness(&active);
+          id(gpio_backlight_pwm).set_level(id(display_backlight).gamma_correct_lut(active));
+
+  # Smooth backlight fade between two linear levels (0..1)
+  - id: fade_backlight
+    parameters:
+      from_level: float
+      to_level: float
+    then:
+      - repeat:
+          count: 6
+          then:
+            - output.set_level:
+                id: gpio_backlight_pwm
+                level: !lambda |-
+                  const float t = static_cast<float>(iteration + 1) / 6.0f;
+                  return id(display_backlight).gamma_correct_lut(
+                    from_level + (to_level - from_level) * t
+                  );
+            - delay: 60ms
+
+  # Fallback safety timeout for background BLE sampling: if no packet arrives within 3.5s, force tick and sleep.
+  - id: bg_ble_acquisition_timeout
+    mode: restart
+    then:
+      - delay: 3500ms
+      - lambda: |-
+          pwr::tick();
+          pwr::compute_stats();
+          id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
+          id(sleep_manager).enter_light_sleep();
+
+  # Idle schedule: active -> dimmed -> (screen off delay) -> screen off -> (remaining sleep delay)
+  # -> light sleep with periodic BLE wake. Screen-off and sleep delays both count from the dim point.
+  - id: reset_dim_timer
+    mode: restart
+    then:
+      # A real interaction cancels any pending background-sample sleep, otherwise the
+      # 3.5 s fallback would put the device back to sleep while it is being used.
+      - script.stop: bg_ble_acquisition_timeout
+      - script.stop: fade_backlight
+      - script.stop: preview_dim_level
+
+      - lambda: |-
+          id(bg_sampling) = false;
+          id(is_dimmed) = false;
+          id(sleep_manager).reset_timer();
+
+      # Always restore: stopping the fade/preview above (or the screen-off stage) can
+      # leave the backlight at an intermediate, dim or zero level, and is_dimmed alone
+      # doesn't track that.
+      - script.execute: restore_backlight
+
+      # Stage 0: active
+      - delay: !lambda 'return id(dim_timeout) * 1000;'
+
+      # Stage 1: dimmed
+      - lambda: 'id(is_dimmed) = true;'
+      - script.execute:
+          id: fade_backlight
+          from_level: !lambda |-
+            float active = 0.0f;
+            id(display_backlight).remote_values.as_brightness(&active);
+            return active;
+          to_level: !lambda |-
+            float active = 0.0f;
+            id(display_backlight).remote_values.as_brightness(&active);
+            return std::min(active, static_cast<float>(id(dim_level)) / 100.0f);
+      - script.wait: fade_backlight
+
+      # Stage 2: stay awake (full 1 Hz capture), optionally turning the screen off,
+      # then light sleep.
+      - if:
+          condition:
+            # Screen-off only applies if enabled and earlier than sleep (or sleep is disabled)
+            lambda: |-
+              return id(screen_off_timeout) > 0 &&
+                     (id(sleep_timeout) == 0 || id(screen_off_timeout) < id(sleep_timeout));
+          then:
+            # Dimmed -> screen off
+            - delay: !lambda 'return id(screen_off_timeout) * 1000;'
+            - output.set_level:
+                id: gpio_backlight_pwm
+                level: 0.0
+            # Screen off -> light sleep (remaining part of the sleep delay)
+            - if:
+                condition:
+                  lambda: 'return id(sleep_timeout) > 0;'
+                then:
+                  - delay: !lambda 'return (id(sleep_timeout) - id(screen_off_timeout)) * 1000;'
+                  - lambda: |-
+                      id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
+                      id(sleep_manager).enter_light_sleep();
+          else:
+            # No separate screen-off stage: dimmed -> light sleep
+            - if:
+                condition:
+                  lambda: 'return id(sleep_timeout) > 0;'
+                then:
+                  - delay: !lambda 'return id(sleep_timeout) * 1000;'
+                  - lambda: |-
+                      id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
+                      id(sleep_manager).enter_light_sleep();

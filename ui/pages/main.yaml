@@ -1,0 +1,111 @@
+# page-main.yaml
+id: main_page
+bg_color: 0x05080B
+bg_opa: COVER
+scrollable: false
+
+widgets:
+  # ---- column headers ---------------------------------------------------------
+  - label: {text: "CH", x: 12, y: 28, width: 30, height: 12, styles: style_t_col}
+  - label: {text: "V", x: 120, y: 28, width: 40, height: 12, styles: style_t_col_r}
+  - label: {text: "A", x: 208, y: 28, width: 40, height: 12, styles: style_t_col_r}
+  - label: {text: "W", x: 282, y: 28, width: 40, height: 12, styles: style_t_col_r}
+  - label: {id: spark_hdr, text: "W · LAST 5 MIN", x: 334, y: 28, width: 138, height: 12, styles: style_t_col}
+  - obj: {x: 8, y: 40, width: 464, height: 1, styles: style_rule}
+
+  # ---- CHARGING ---------------------------------------------------------------
+  - obj: {x: 8, y: 51, width: 2, height: 50, styles: style_rule, bg_color: 0x46D3B5}
+  - label: {text: "CHG", x: 16, y: 50, width: 60, height: 14, styles: style_t_ch, text_color: 0x46D3B5}
+  - label: {id: chg_ah, text: "Ah --", x: 16, y: 68, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: chg_wh, text: "24h --", x: 16, y: 80, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: chg_v, text: "--", x: 84, y: 48, width: 76, height: 30, styles: style_t_xl_r}
+  - label: {id: chg_a, text: "--", x: 162, y: 48, width: 86, height: 30, styles: style_t_xl_r}
+  - label: {id: chg_w, text: "--", x: 250, y: 48, width: 72, height: 30, styles: style_t_xl_r}
+  - label: {id: chg_v1, text: "", x: 80, y: 80, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: chg_v2, text: "", x: 80, y: 92, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: chg_a1, text: "", x: 178, y: 80, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: chg_a2, text: "", x: 178, y: 92, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: chg_w1, text: "", x: 250, y: 80, width: 72, height: 12, styles: style_t_xs_r}
+  - label: {id: chg_w2, text: "", x: 250, y: 92, width: 72, height: 12, styles: style_t_xs_r}
+  - obj: {id: chg_zero, x: 334, y: 72, width: 138, height: 1, styles: style_rule, hidden: true}
+  - line:
+      id: chg_spark
+      x: 334
+      y: 50
+      width: 138
+      height: 44
+      line_width: 1
+      line_color: 0x46D3B5
+      hidden: true
+      points:
+        - 0, 0
+        - 138, 0
+  - obj: {x: 8, y: 109, width: 464, height: 1, styles: style_rule}
+
+  # ---- DISTRIBUTION -----------------------------------------------------------
+  - obj: {x: 8, y: 119, width: 2, height: 50, styles: style_rule, bg_color: 0xE8B04A}
+  - label: {text: "DIST", x: 16, y: 118, width: 60, height: 14, styles: style_t_ch, text_color: 0xE8B04A}
+  - label: {id: dist_ah, text: "Ah --", x: 16, y: 136, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: dist_wh, text: "24h --", x: 16, y: 148, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: dist_v, text: "--", x: 84, y: 116, width: 76, height: 30, styles: style_t_xl_r}
+  - label: {id: dist_a, text: "--", x: 162, y: 116, width: 86, height: 30, styles: style_t_xl_r}
+  - label: {id: dist_w, text: "--", x: 250, y: 116, width: 72, height: 30, styles: style_t_xl_r}
+  - label: {id: dist_v1, text: "", x: 80, y: 148, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: dist_v2, text: "", x: 80, y: 160, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: dist_a1, text: "", x: 178, y: 148, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: dist_a2, text: "", x: 178, y: 160, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: dist_w1, text: "", x: 250, y: 148, width: 72, height: 12, styles: style_t_xs_r}
+  - label: {id: dist_w2, text: "", x: 250, y: 160, width: 72, height: 12, styles: style_t_xs_r}
+  - obj: {id: dist_zero, x: 334, y: 140, width: 138, height: 1, styles: style_rule, hidden: true}
+  - line:
+      id: dist_spark
+      x: 334
+      y: 118
+      width: 138
+      height: 44
+      line_width: 1
+      line_color: 0xE8B04A
+      hidden: true
+      points:
+        - 0, 0
+        - 138, 0
+  - obj: {x: 8, y: 177, width: 464, height: 1, styles: style_rule}
+
+  # ---- BATTERY ----------------------------------------------------------------
+  - obj: {x: 8, y: 187, width: 2, height: 50, styles: style_rule, bg_color: 0x7AA7FF}
+  - label: {text: "BATT", x: 16, y: 186, width: 60, height: 14, styles: style_t_ch, text_color: 0x7AA7FF}
+  - label: {id: bat_ah, text: "Ah --", x: 16, y: 204, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: bat_wh, text: "24h --", x: 16, y: 216, width: 70, height: 12, styles: style_t_xs}
+  - label: {id: bat_v, text: "--", x: 84, y: 184, width: 76, height: 30, styles: style_t_xl_r}
+  - label: {id: bat_a, text: "--", x: 162, y: 184, width: 86, height: 30, styles: style_t_xl_r}
+  - label: {id: bat_w, text: "--", x: 250, y: 184, width: 72, height: 30, styles: style_t_xl_r}
+  - label: {id: bat_v1, text: "", x: 80, y: 216, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: bat_v2, text: "", x: 80, y: 228, width: 80, height: 12, styles: style_t_xs_r}
+  - label: {id: bat_a1, text: "", x: 178, y: 216, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: bat_a2, text: "", x: 178, y: 228, width: 70, height: 12, styles: style_t_xs_r}
+  - label: {id: bat_w1, text: "", x: 250, y: 216, width: 72, height: 12, styles: style_t_xs_r}
+  - label: {id: bat_w2, text: "", x: 250, y: 228, width: 72, height: 12, styles: style_t_xs_r}
+  - obj: {id: bat_zero, x: 334, y: 208, width: 138, height: 1, styles: style_rule, hidden: true}
+  - line:
+      id: bat_spark
+      x: 334
+      y: 186
+      width: 138
+      height: 44
+      line_width: 1
+      line_color: 0x7AA7FF
+      hidden: true
+      points:
+        - 0, 0
+        - 138, 0
+
+  # ---- Sparkline tap target ---------------------------------------------------
+  - button:
+      x: 330
+      y: 26
+      width: 146
+      height: 218
+      styles: style_clear
+      on_click:
+        then:
+          - script.execute: cycle_spark

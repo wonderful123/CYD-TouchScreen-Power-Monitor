@@ -1,0 +1,37 @@
+# ui/styles/controls.yaml
+# Controls: stepper buttons & switch
+lvgl:
+  style_definitions:
+    - id: style_step_btn
+      bg_color: 0x0B141B
+      bg_opa: COVER
+      border_color: 0x2A3C47
+      border_width: 1
+      radius: 6
+      pad_all: 0
+      shadow_width: 0
+      outline_width: 0
+
+    # Drawn +/- glyph bars (no font dependency)
+    - id: style_glyph
+      bg_color: 0xD3E6EB
+      bg_opa: COVER
+      border_width: 0
+      radius: 1
+      pad_all: 0
+      shadow_width: 0
+
+    - id: style_sleep_switch
+      bg_color: 0x15202A
+      bg_opa: COVER
+      border_width: 1
+      border_color: 0x2A3C47
+      radius: 13
+      pad_all: 0
+
+    - id: style_switch_knob
+      bg_color: 0x8AA4AE
+      bg_opa: COVER
+      border_width: 0
+      radius: 13
+      pad_all: 0

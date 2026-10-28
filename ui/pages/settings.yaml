@@ -1,0 +1,176 @@
+# ui/pages/settings.yaml
+id: settings_page
+bg_color: 0x05080B
+bg_opa: COVER
+scrollable: false
+
+on_load:
+  then:
+    # Scroll behaviour and scrollbar styling, always open at the top (include/view_settings.h)
+    - lambda: 'pwr::ui::settings_page_enter();'
+    # Keep the uptime label ticking while this page is visible
+    - script.execute: uptime_loop
+
+on_unload:
+  then:
+    - script.stop: uptime_loop
+
+widgets:
+  # Scroll viewport: sits exactly between the header (ends y=23) and tab bar (starts y=246).
+  # Children are clipped to this box, so nothing can bleed into the chrome.
+  - obj:
+      id: settings_scroll
+      x: 0
+      y: 24
+      width: 480
+      height: 222
+      styles: style_clear
+      pad_bottom: 14
+      widgets:
+        # ======================= DISPLAY =======================
+        - label:
+            text: "DISPLAY"
+            x: 12
+            y: 6
+            width: 200
+            height: 12
+            styles: style_t_col
+            text_color: 0x46D3B5
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 22
+            row_which: 0
+            row_val_id: set_bright_val
+            row_title: "ACTIVE BRIGHTNESS"
+            row_hint: "backlight level during normal use"
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 66
+            row_which: 1
+            row_val_id: set_dim_val
+            row_title: "DIM LEVEL"
+            row_hint: "backlight level after inactivity"
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 110
+            row_which: 2
+            row_val_id: set_timeout_val
+            row_title: "DIM AFTER"
+            row_hint: "idle time before dimming"
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 154
+            row_which: 5
+            row_val_id: set_screen_off_val
+            row_title: "SCREEN OFF AFTER"
+            row_hint: "delay after dimming before screen turns off"
+
+        # ===================== POWER SAVING =====================
+        - label:
+            text: "POWER SAVING"
+            x: 12
+            y: 208
+            width: 200
+            height: 12
+            styles: style_t_col
+            text_color: 0x46D3B5
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 224
+            row_which: 3
+            row_val_id: set_sleep_val
+            row_title: "LIGHT SLEEP AFTER"
+            row_hint: "delay after dimming before light sleep"
+
+        - !include
+          file: settings_stepper.yaml
+          vars:
+            row_y: 268
+            row_which: 4
+            row_val_id: set_wake_val
+            row_title: "WAKE INTERVAL"
+            row_hint: "time between BLE sampling wake-ups"
+
+        # Toggle row: the whole row is a tap target, not just the switch
+        - obj:
+            x: 0
+            y: 312
+            width: 480
+            height: 44
+            styles: style_clear
+            scrollable: false
+            on_click:
+              then:
+                - script.execute: reset_dim_timer
+                - lambda: 'id(screen_off_in_sleep) = pwr::ui::toggle_sleep_switch();'
+            widgets:
+              - label:
+                  text: "SCREEN OFF DURING SLEEP"
+                  x: 12
+                  y: 7
+                  width: 244
+                  height: 12
+                  styles: style_t_col
+              - label:
+                  text: "turn backlight off while sleeping"
+                  x: 12
+                  y: 23
+                  width: 244
+                  height: 12
+                  styles: style_t_hint
+              - switch:
+                  id: sleep_switch
+                  x: 416
+                  y: 9
+                  width: 52
+                  height: 26
+                  styles: style_sleep_switch
+                  indicator:
+                    checked:
+                      bg_color: 0x46D3B5
+                  knob:
+                    styles: style_switch_knob
+                  on_value:
+                    then:
+                      - script.execute: reset_dim_timer
+                      - lambda: 'id(screen_off_in_sleep) = x;'
+
+        # ======================= SUMMARY =======================
+        - label:
+            id: set_summary
+            text: ""
+            x: 12
+            y: 366
+            width: 456
+            height: 12
+            styles: style_t_hint
+
+        # ======================== SYSTEM ========================
+        - label:
+            text: "UPTIME"
+            x: 12
+            y: 390
+            width: 100
+            height: 12
+            styles: style_t_col
+            text_color: 0x46D3B5
+
+        - label:
+            id: set_uptime
+            text: "--"
+            x: 168
+            y: 390
+            width: 300
+            height: 12
+            text_align: RIGHT
+            styles: style_t_hint

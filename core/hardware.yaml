@@ -1,0 +1,63 @@
+# core/hardware.yaml
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    advanced:
+      execute_from_psram: true
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+spi:
+  - id: spi_touch
+    clk_pin: GPIO12
+    mosi_pin: GPIO11
+    miso_pin: GPIO13
+
+touchscreen:
+  - id: my_touchscreen
+    platform: xpt2046
+    spi_id: spi_touch
+    cs_pin: GPIO38
+    update_interval: 50ms
+    # Raised from 200: noise was reading z = 240 with no finger on the panel.
+    # If real touches get missed, lower it in steps of 50. If phantoms continue, go higher.
+    threshold: 300
+    calibration:
+      x_min: 300
+      x_max: 3700
+      y_min: 300
+      y_max: 3700
+    on_touch:
+      then:
+        - script.execute: reset_dim_timer
+
+display:
+  - id: my_display
+    platform: mipi_rgb
+    model: RPI
+    dimensions:
+      width: 480
+      height: 280
+    color_order: RGB
+    de_pin: GPIO40
+    hsync_pin: GPIO39
+    vsync_pin: GPIO41
+    pclk_pin: GPIO42
+    pclk_inverted: true
+    pclk_frequency: 14MHz
+    hsync_front_porch: 8
+    hsync_pulse_width: 4
+    hsync_back_porch: 43
+    vsync_front_porch: 8
+    vsync_pulse_width: 4
+    vsync_back_porch: 12
+    data_pins:
+      red: [GPIO45, GPIO48, GPIO47, GPIO21, GPIO14]
+      green: [GPIO5, GPIO6, GPIO7, GPIO15, GPIO16, GPIO4]
+      blue: [GPIO8, GPIO3, GPIO46, GPIO9, GPIO1]
+    update_interval: never
+    auto_clear_enabled: false

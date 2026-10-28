@@ -1,0 +1,68 @@
+# cyd-43.yaml
+esphome:
+  name: cyd-43
+  friendly_name: CYD 4.3 Inch
+
+  on_boot:
+    priority: -100
+    then:
+      # Hand the LVGL widgets to the C++ views before anything draws
+      - script.execute: bind_ui
+      # Start the dim -> full dim -> light sleep schedule without needing a touch first
+      - script.execute: reset_dim_timer
+  
+  includes:
+    - components/power_monitor
+
+external_components:
+  - source:
+      type: local
+      path: components
+
+ota:
+  - platform: esphome
+
+logger:
+  level: DEBUG
+  hardware_uart: UART0
+
+# Light sleep drops WiFi and the API connection for long stretches.
+# Disable the 15 min "no client / no WiFi" watchdog reboots, which wipe the RAM history.
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret api_key
+
+wifi:
+  reboot_timeout: 0s
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 192.168.1.150
+
+time:
+  - platform: homeassistant
+    id: ha_time
+
+# Root-level custom component declaration
+power_monitor:
+
+packages:
+  # Core Platform
+  hardware: !include core/hardware.yaml
+  backlight: !include core/backlight.yaml
+  power: !include core/power.yaml
+
+  # Sensors & Data Ingestion
+  power_ble: !include sensors/power-ble.yaml
+
+  # UI Subsystem
+  fonts: !include ui/fonts.yaml
+  styles_containers: !include ui/styles/containers.yaml
+  styles_controls: !include ui/styles/controls.yaml
+  styles_typography: !include ui/styles/typography.yaml
+  ui_state: !include ui/state.yaml
+  ui_navigation: !include ui/scripts/navigation.yaml
+  ui_refresh: !include ui/scripts/refresh.yaml
+  ui_settings: !include ui/scripts/settings.yaml
+  ui_bindings: !include ui/bindings.yaml
+  lvgl_root: !include ui/lvgl.yaml

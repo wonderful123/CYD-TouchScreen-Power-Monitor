@@ -1,0 +1,21 @@
+# ui/scripts/refresh.yaml
+# Per-page display refresh scripts. Drawing logic lives in include/view_*.h.
+script:
+  - id: refresh_header
+    then:
+      - lambda: |-
+          auto now = id(ha_time).now();
+          std::string clk = now.is_valid() ? now.strftime("%H:%M:%S") : std::string("--:--:--");
+          pwr::ui::render_header(clk.c_str());
+
+  - id: refresh_main
+    then:
+      - lambda: 'pwr::ui::render_overview(id(spark_mode));'
+
+  - id: refresh_scope
+    then:
+      - lambda: 'pwr::ui::render_scope(id(scope_metric), id(scope_range), id(scope_cursor));'
+
+  - id: refresh_stats
+    then:
+      - lambda: 'pwr::ui::render_stats();'
