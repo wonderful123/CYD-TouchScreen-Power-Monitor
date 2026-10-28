@@ -20,6 +20,28 @@ inline float acc_i[LEVELS][CH];
 inline int acc_n[LEVELS][CH];
 inline int ticks[LEVELS];
 
+// Integrate at the finest cadence before signed currents are averaged. These
+// buckets share the 24 h history's ring positions but retain valid duration and
+// both energy directions. Keep the open bucket visible between six-minute closes.
+struct Energy {
+  float hours, ah_in, ah_out, wh_in, wh_out;
+};
+inline Energy energy_ring[CH][N]{};
+inline Energy energy_cur[CH]{};
+
+inline void integrate_sample(int c, float v, float i) {
+  constexpr float dt_h = SLOT_MS / 3600000.0f;
+  Energy &e = energy_cur[c];
+  e.hours += dt_h;
+  if (i >= 0.0f) {
+    e.ah_in += i * dt_h;
+    e.wh_in += v * i * dt_h;
+  } else {
+    e.ah_out -= i * dt_h;
+    e.wh_out -= v * i * dt_h;
+  }
+}
+
 struct HistoryInit {
   HistoryInit() {
     for (int l = 0; l < LEVELS; l++)
@@ -32,13 +54,18 @@ inline HistoryInit history_init;
 // Append one sample per channel to level l and cascade the averages upwards.
 inline void push(int l, const float *v, const float *i, const bool *ok) {
   for (int c = 0; c < CH; c++) {
+    if (l == 0 && ok[c]) integrate_sample(c, v[c], i[c]);
     Sample s{INVALID_MV, 0};
     if (ok[c]) {
       s.mv = (uint16_t) lroundf(v[c] * 1000.0f);
       s.cur = (int16_t) lroundf(i[c] * 100.0f);
     }
     buf[l][c][head[l]] = s;
-    if (l == TOP_LEVEL) peak_close(c, head[l]);  // close the peak bucket alongside the 24 h sample
+    if (l == TOP_LEVEL) {
+      peak_close(c, head[l]);
+      energy_ring[c][head[l]] = energy_cur[c];
+      energy_cur[c] = {};
+    }
   }
   head[l] = (head[l] + 1) % N;
   if (l + 1 >= LEVELS) return;

@@ -26,7 +26,6 @@ inline void merge_pk(Stats &s, const Pk &p) {
 }
 
 inline void compute_stats() {
-  const float dt_h = (SPAN_S[TOP_LEVEL] / N) / 3600.0f;
   bal_ah_in = bal_ah_out = bal_wh_in = bal_wh_out = 0.0f;
   for (int c = 0; c < CH; c++) {
     Stats s{false, 99.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -41,19 +40,22 @@ inline void compute_stats() {
       s.vmax = std::max(s.vmax, v);
       s.ipk = std::max(s.ipk, fabsf(i));
       s.wpk = std::max(s.wpk, fabsf(v * i));
-      s.ah += fabsf(i) * dt_h;
-      s.wh += fabsf(v * i) * dt_h;
-      s.hours += dt_h;
-      if (c == CH_BATTERY) {
-        if (i > 0) {
-          bal_ah_in += i * dt_h;
-          bal_wh_in += v * i * dt_h;
-        } else {
-          bal_ah_out -= i * dt_h;
-          bal_wh_out -= v * i * dt_h;
-        }
-      }
     }
+    // Integrals retain missing-data coverage, voltage/current correlation, and
+    // charge/discharge direction that cannot be recovered from plotted means.
+    auto merge_energy = [&](const Energy &e) {
+      s.ah += e.ah_in + e.ah_out;
+      s.wh += e.wh_in + e.wh_out;
+      s.hours += e.hours;
+      if (c == CH_BATTERY) {
+        bal_ah_in += e.ah_in;
+        bal_ah_out += e.ah_out;
+        bal_wh_in += e.wh_in;
+        bal_wh_out += e.wh_out;
+      }
+    };
+    for (int j = 0; j < N; j++) merge_energy(energy_ring[c][j]);
+    merge_energy(energy_cur[c]);
     // The bucket still in progress, so values show up straight after boot.
     merge_pk(s, pk_cur[c]);
     if (!s.any) s.vmin = 0.0f;
