@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include "config.h"
+#include "clock.h"
 
 namespace pwr {
 
@@ -18,6 +19,10 @@ struct Pk {
 };
 inline Pk pk_ring[CH][N];
 inline Pk pk_cur[CH];
+inline uint32_t pk_cur_started_ms[CH]{};
+
+inline constexpr uint32_t PEAK_WINDOW_MS = 86400000;
+
 
 inline Pk pk_empty() { return Pk{INVALID_MV, 0, 0, 0}; }
 
@@ -31,9 +36,16 @@ struct PeaksInit {
 };
 inline PeaksInit peaks_init;
 
+inline void peak_expire_current(int c) {
+  if (pk_cur[c].vmin != INVALID_MV && now_ms() - pk_cur_started_ms[c] >= PEAK_WINDOW_MS)
+    pk_cur[c] = pk_empty();
+}
+
 // Call for every decoded packet of channel c.
 inline void peak_update(int c, float v, float i) {
+  peak_expire_current(c);
   Pk &p = pk_cur[c];
+  if (p.vmin == INVALID_MV) pk_cur_started_ms[c] = now_ms();
   const uint16_t mv = (uint16_t) lroundf(std::max(0.0f, std::min(65534.0f, v * 1000.0f)));
   const uint16_t ia = (uint16_t) lroundf(std::min(65535.0f, fabsf(i) * 100.0f));
   const uint16_t wa = (uint16_t) lroundf(std::min(65535.0f, fabsf(v * i)));
