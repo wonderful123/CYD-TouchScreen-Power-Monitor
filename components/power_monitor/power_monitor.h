@@ -21,7 +21,7 @@
 #include "ui/views/settings.h"
 
 namespace esphome {
-namespace pwr {
+namespace power_monitor {
 
 class PowerMonitorComponent : public Component {
  public:
@@ -29,5 +29,5 @@ class PowerMonitorComponent : public Component {
   void loop() override {}
 };
 
-}  // namespace pwr
+}  // namespace power_monitor
 }  // namespace esphome
