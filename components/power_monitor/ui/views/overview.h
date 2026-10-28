@@ -98,7 +98,7 @@ inline void render_overview_row(int k, const OverviewRow &r, int spark_level, in
 
   float mn, mx;
   scale(spark_level, 2, spark_count, 1 << k, &mn, &mx);
-  const bool shown = trace(r.spark, pts_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
+  const bool shown = trace(r.spark, traces_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
 
   if (shown && mn < 0.0f && mx > 0.0f) {
     const int y0 = (int) lroundf((float) SPARK_H - (0.0f - mn) / (mx - mn) * (float) SPARK_H);
