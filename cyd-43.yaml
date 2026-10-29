@@ -12,7 +12,11 @@ esphome:
       - script.execute: reset_dim_timer
   
   includes:
-    - components/power_monitor
+    # External components copy only their top-level sources. Copy the nested
+    # headers separately, preserving model/, ble/, and ui/ under src/.
+    - components/power_monitor/model
+    - components/power_monitor/ble
+    - components/power_monitor/ui
 
 external_components:
   - source:

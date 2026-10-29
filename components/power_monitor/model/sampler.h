@@ -27,6 +27,7 @@ inline void tick() {
   if (!f && slot_started && (now - wake_ms) < WAKE_GRACE_MS) return;
 
   uint32_t n = 1;
+  bool expired = false;
   if (!slot_started) {
     slot_started = true;
     last_slot_ms = now;
@@ -35,9 +36,11 @@ inline void tick() {
     if (elapsed < SLOT_MS) return;
     n = elapsed / SLOT_MS;
     last_slot_ms += n * SLOT_MS;
-    if (n > MAX_FILL) {
+    if (n >= MAX_FILL) {
       n = MAX_FILL;
-      last_slot_ms = now;
+      expired = true;
+      clear_history();
+      for (int c = 0; c < CH; ++c) prev_ok[c] = false;
     }
   }
 
@@ -47,6 +50,18 @@ inline void tick() {
     ok[c] = f && live.valid[c];
     v[c] = live.v[c];
     i[c] = live.i[c];
+  }
+
+  // Never interpolate from an endpoint outside the retained window. Keep any
+  // fresh packet peaks out of the expired backfill buckets and attach them to
+  // the current slot instead.
+  Pk recent_peaks[CH];
+  for (int c = 0; c < CH; ++c) {
+    if (expired) {
+      peak_expire_current(c);
+      recent_peaks[c] = pk_cur[c];
+      pk_cur[c] = pk_empty();
+    }
   }
 
   // Back-fill the slots skipped while asleep.
@@ -60,6 +75,9 @@ inline void tick() {
       gi[c] = prev_i[c] + (i[c] - prev_i[c]) * t;
     }
     push(0, gv, gi, gok);
+  }
+  if (expired) {
+    for (int c = 0; c < CH; ++c) pk_cur[c] = recent_peaks[c];
   }
   push(0, v, i, ok);
 

@@ -12,6 +12,14 @@
 
 #include "driver/gpio.h"
 #include "esp_sleep.h"
+#ifdef USE_ESP32_BLE
+#include "esphome/components/esp32_ble/ble.h"
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#endif
+#ifdef USE_WIFI
+#include "esphome/components/wifi/wifi_component.h"
+#endif
 
 namespace esphome {
 namespace light_sleep_touch {
@@ -94,6 +102,11 @@ class LightSleepTouchComponent : public Component {
       return;
     }
 
+    if (this->sleep_requested_) {
+      this->process_sleep_request_();
+      return;
+    }
+
     if (this->inactivity_timeout_ms_ == 0) {
       return;
     }
@@ -114,17 +127,68 @@ class LightSleepTouchComponent : public Component {
     this->last_activity_ms_ = millis();
   }
 
+  // Queue sleep so BLE advertisements can finish before their stack is stopped.
   void enter_light_sleep() {
-    if (this->is_failed() || this->touch_irq_pin_ == nullptr) {
-      return;
-    }
+    if (this->is_failed() || this->touch_irq_pin_ == nullptr || this->sleep_requested_) return;
+    this->sleep_requested_ = true;
+    this->radios_stopping_ = false;
+  }
 
-    // Do not enter sleep while PENIRQ is already active.
+ protected:
+  void restore_radios_() {
+#ifdef USE_WIFI
+    if (this->restore_wifi_) wifi::global_wifi_component->enable();
+#endif
+#ifdef USE_ESP32_BLE
+    if (this->restore_ble_) esp32_ble::global_ble->enable();
+#endif
+    this->restore_wifi_ = this->restore_ble_ = false;
+  }
+
+  void cancel_sleep_() {
+    this->sleep_requested_ = false;
+    this->restore_radios_();
+    // Return to the interactive schedule, including resuming touch polling if
+    // a background acquisition had already suspended it.
+    this->touch_wakeup_ = true;
+    this->last_wakeup_cause_ = ESP_SLEEP_WAKEUP_UNDEFINED;
+    this->reset_timer();
+    this->wake_callback_.call();
+  }
+
+  void process_sleep_request_() {
     if (!this->touch_irq_pin_->digital_read()) {
-      this->reset_timer();
+      this->cancel_sleep_();
       return;
     }
+    if (!this->radios_stopping_) {
+      this->radios_stopping_ = true;
+      this->radio_stop_ms_ = millis();
+#ifdef USE_WIFI
+      this->restore_wifi_ = wifi::global_wifi_component != nullptr &&
+                            !wifi::global_wifi_component->is_disabled();
+      if (this->restore_wifi_) wifi::global_wifi_component->disable();
+#endif
+#ifdef USE_ESP32_BLE
+      this->restore_ble_ = esp32_ble::global_ble != nullptr && esp32_ble::global_ble->is_active();
+      if (this->restore_ble_) esp32_ble::global_ble->disable();
+#endif
+      return;  // BLE disable is processed by its component loop, never inline.
+    }
+#ifdef USE_ESP32_BLE
+    if (esp_bt_controller_get_status() != ESP_BT_CONTROLLER_STATUS_IDLE ||
+        esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_UNINITIALIZED) {
+      if (millis() - this->radio_stop_ms_ >= 5000) {
+        ESP_LOGW(TAG, "Radio shutdown timed out; cancelling sleep");
+        this->cancel_sleep_();
+      }
+      return;
+    }
+#endif
+    this->perform_light_sleep_();
+  }
 
+  void perform_light_sleep_() {
     ESP_LOGI(
         TAG,
         "Entering light sleep for %" PRIu32 " ms",
@@ -210,6 +274,8 @@ class LightSleepTouchComponent : public Component {
       this->reset_timer();
     }
 
+    this->sleep_requested_ = false;
+    this->restore_radios_();
     this->wake_callback_.call();
   }
 
@@ -220,6 +286,11 @@ class LightSleepTouchComponent : public Component {
   uint32_t sleep_duration_ms_{30000};
   uint32_t last_activity_ms_{0};
 
+  bool sleep_requested_{false};
+  bool radios_stopping_{false};
+  bool restore_wifi_{false};
+  bool restore_ble_{false};
+  uint32_t radio_stop_ms_{0};
   bool touch_wakeup_{false};
   esp_sleep_wakeup_cause_t last_wakeup_cause_{ESP_SLEEP_WAKEUP_UNDEFINED};
 

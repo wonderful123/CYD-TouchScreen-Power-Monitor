@@ -35,7 +35,8 @@ int main() {
   }
   float volts[] = {12,12,12}, amps[] = {-2,3,-4};
   bool valid[] = {true,true,true};
-  pwr::push(pwr::TOP_LEVEL, volts, amps, valid);
+  pwr::clear_history();
+  pwr::push(0, volts, amps, valid);
   pwr::compute_stats();
   assert(pwr::st24[0].ah < 0 && pwr::st24[0].wh < 0);
   assert(near(pwr::bal_ah_in, 0) && pwr::bal_ah_out > 0);
@@ -44,6 +45,18 @@ int main() {
   pwr::compute_stats();
   assert(near(pwr::bal_ah_in, out) && near(pwr::bal_ah_out, 0));
   assert(pwr::st24[0].wh < 0 && pwr::st24[1].wh > 0 && pwr::st24[2].wh > 0);
+  // Closing the raw energy bucket must preserve its direction-aware totals.
+  const float net_wh = pwr::st24[2].wh;
+  const float data_hours = pwr::st24[2].hours;
+  pwr::push(pwr::TOP_LEVEL, volts, amps, valid);
+  pwr::compute_stats();
+  assert(near(pwr::st24[2].wh, net_wh) && near(pwr::st24[2].hours, data_hours));
+  assert(near(pwr::bal_ah_in, out) && near(pwr::bal_ah_out, 0));
+  pwr::reversed[2] = false;
+  pwr::compute_stats();
+  assert(near(pwr::st24[2].wh, -net_wh));
+  assert(near(pwr::bal_ah_in, 0) && near(pwr::bal_ah_out, out));
+  pwr::reversed[2] = true;
   pwr::host_now_ms = pwr::SLOT_MS;
   pwr::tick(); // history must not apply the direction twice
   float v, i;

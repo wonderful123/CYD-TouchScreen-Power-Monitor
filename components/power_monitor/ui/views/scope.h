@@ -83,7 +83,7 @@ inline void render_scope(int m, int lv, int cur) {
   // traces + y axis
   float mn, mx;
   scale(lv, m, N, (1 << CH) - 1, &mn, &mx);
-  for (int k = 0; k < CH; k++) trace(W.line[k], pts_scope[k], lv, k, m, N, SCOPE_W, SCOPE_H, mn, mx);
+  for (int k = 0; k < CH; k++) trace(W.line[k], traces_scope[k], lv, k, m, N, SCOPE_W, SCOPE_H, mn, mx);
   for (int i = 0; i < 5; i++) {
     fmt(b, sizeof(b), mx - (mx - mn) * i / 4.0f, dec);
     lv_label_set_text(W.y_label[i], b);

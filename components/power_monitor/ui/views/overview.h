@@ -98,7 +98,7 @@ inline void render_overview_row(int k, const OverviewRow &r, int spark_level, in
 
   float mn, mx;
   scale(spark_level, 2, spark_count, 1 << k, &mn, &mx);
-  trace(r.spark, pts_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
+  trace(r.spark, traces_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
   lv_label_set_text(r.direction, chart_direction(spark_level, k, spark_count));
 }
 
