@@ -1,7 +1,7 @@
 # cyd-43.yaml
 esphome:
-  name: cyd-43
-  friendly_name: CYD 4.3 Inch
+  name: power-monitor
+  friendly_name: CYD 4.3 Inch Power Monitor
 
   on_boot:
     priority: -100
@@ -41,7 +41,7 @@ wifi:
   reboot_timeout: 0s
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  use_address: 192.168.1.150
+  # use_address: 10.223.223.163
 
 time:
   - platform: homeassistant
