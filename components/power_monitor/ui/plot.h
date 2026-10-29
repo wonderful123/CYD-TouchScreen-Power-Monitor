@@ -21,6 +21,8 @@ inline constexpr int SPARK_CNT[SPARK_MODES] = {SPARK_N, N, N, N};    // newest p
 
 struct Trace {
   pt_t points[N];
+  bool estimated[N]{};
+  int width = 0, height = 0;
   int count = 0;
   bool bound = false;
 };
@@ -53,8 +55,7 @@ inline void scale(int lvl, int m, int count, int mask, float *mn, float *mx) {
   *mx = hi + pad;
 }
 
-// Draw separate segments so invalid samples remain visible gaps. The LVGL line
-// widget connects every supplied point, so its built-in polyline is left empty.
+// Draw the interpolated trace over very faint bands marking estimated samples.
 inline void draw_trace(lv_event_t *event) {
   const auto &data = *static_cast<const Trace *>(lv_event_get_user_data(event));
   auto *line = static_cast<lv_obj_t *>(lv_event_get_current_target(event));
@@ -69,6 +70,31 @@ inline void draw_trace(lv_event_t *event) {
 #else
   auto *context = lv_event_get_draw_ctx(event);
 #endif
+  // Missing observations are shown with a neutral tint at ~3% opacity. Each
+  // channel draws its own bands; even overlapping scope bands stay subdued.
+  lv_draw_rect_dsc_t shade;
+  lv_draw_rect_dsc_init(&shade);
+  shade.bg_color = lv_color_hex(0xD3E6EB);
+  shade.bg_opa = 8;
+#if LVGL_VERSION_MAJOR >= 9
+  shade.base.layer = layer;
+#endif
+  for (int k = 0; k < data.count; ++k) {
+    if (!data.estimated[k]) continue;
+    const int start = k;
+    while (k + 1 < data.count && data.estimated[k + 1]) ++k;
+    const float step = static_cast<float>(data.width) / (data.count - 1);
+    lv_area_t band;
+    band.x1 = area.x1 + std::max(0, (int) lroundf((start - 0.5f) * step));
+    band.x2 = area.x1 + std::min(data.width, (int) lroundf((k + 0.5f) * step));
+    band.y1 = area.y1;
+    band.y2 = area.y1 + data.height;
+#if LVGL_VERSION_MAJOR >= 9
+    lv_draw_rect(layer, &shade, &band);
+#else
+    lv_draw_rect(context, &shade, &band);
+#endif
+  }
   for (int k = 1; k < data.count; ++k) {
     const auto &a = data.points[k - 1];
     const auto &b = data.points[k];
@@ -85,26 +111,48 @@ inline void draw_trace(lv_event_t *event) {
   }
 }
 
-// Each sample retains its time-axis position, including leading/trailing gaps.
+// Interpolate missing samples between observations, and hold the last value
+// for a trailing gap. Leave everything before the first observation blank.
+// These are display points only; history and energy accounting are untouched.
 inline bool trace(lv_obj_t *line, Trace &data, int lvl, int c, int m, int count, int w, int h, float mn, float mx) {
   if (!data.bound) {
     lv_line_set_points(line, nullptr, 0);
     lv_obj_add_event_cb(line, draw_trace, LV_EVENT_DRAW_MAIN, &data);
     data.bound = true;
   }
-  bool has_segment = false;
+  int first = -1, previous = -1;
   data.count = count;
+  data.width = w;
+  data.height = h;
   for (int k = 0; k < count; ++k) {
     float v, i;
+    data.estimated[k] = false;
     if (get(lvl, c, N - count + k, v, i)) {
       data.points[k].x = (int) lroundf((float) k * w / (count - 1));
       data.points[k].y = (int) lroundf(h - (metric(m, v, i) - mn) / (mx - mn) * h);
-      if (k > 0 && data.points[k - 1].x >= 0) has_segment = true;
+      if (first < 0) first = k;
+      if (previous >= 0) {
+        for (int j = previous + 1; j < k; ++j) {
+          const float t = static_cast<float>(j - previous) / (k - previous);
+          data.points[j].x = (int) lroundf((float) j * w / (count - 1));
+          data.points[j].y = (int) lroundf(data.points[previous].y +
+                                         (data.points[k].y - data.points[previous].y) * t);
+          data.estimated[j] = true;
+        }
+      }
+      previous = k;
     } else {
       data.points[k] = {-1, -1};
     }
   }
-  if (!has_segment) {
+  if (previous >= 0) {
+    for (int k = previous + 1; k < count; ++k) {
+      data.points[k].x = (int) lroundf((float) k * w / (count - 1));
+      data.points[k].y = data.points[previous].y;
+      data.estimated[k] = true;
+    }
+  }
+  if (first < 0 || first == count - 1) {
     lv_obj_add_flag(line, LV_OBJ_FLAG_HIDDEN);
     return false;
   }

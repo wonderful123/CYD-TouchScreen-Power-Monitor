@@ -3,13 +3,14 @@
 #include <cassert>
 #include <cstdio>
 
-void sample(bool valid) {
-  float v[pwr::CH] = {12, 12, 12}, i[pwr::CH] = {1, 1, 1};
+void sample(bool valid, float volts = 12) {
+  float v[pwr::CH] = {volts, volts, volts}, i[pwr::CH] = {1, 1, 1};
   bool ok[pwr::CH] = {valid, valid, valid};
   pwr::push(0, v, i, ok);
 }
 void draw(lv_obj_t &line) {
   drawn_segments.clear();
+  shaded_bands.clear();
   if (line.flags & LV_OBJ_FLAG_HIDDEN) return;
   lv_event_t event{&line};
   assert(line.callback);
@@ -18,32 +19,56 @@ void draw(lv_obj_t &line) {
 int main() {
   lv_obj_t line;
   pwr::ui::Trace data{};
-  // Two valid segments, separated by a gap, with missing data at both ends.
+  // Leading gaps remain blank; internal and trailing gaps are drawn and shaded.
   for (bool valid : {false, true, true, false, true, true, false}) sample(valid);
   assert(pwr::ui::trace(&line, data, 0, 0, 0, 7, 60, 100, 10, 14));
   draw(line);
-  assert(drawn_segments.size() == 2);
-  // Actual draw coordinates retain time position and widget origin.
-  assert(drawn_segments[0].p1.x == 30 && drawn_segments[0].p2.x == 40);
-  assert(drawn_segments[1].p1.x == 60 && drawn_segments[1].p2.x == 70);
-  assert(drawn_segments[0].p1.y == 80);
+  assert(drawn_segments.size() == 5);
+  assert(drawn_segments.front().p1.x == 30);  // Leading slot stays blank.
+  assert(drawn_segments.back().p2.x == 80);   // Last value extends to the present.
+  assert(shaded_bands.size() == 2);
+  assert(!data.estimated[0] && data.estimated[3] && data.estimated[6]);
+  for (const auto &band : shaded_bands) {
+    assert(band.style.bg_opa == 8);
+    assert(band.area.x1 >= 30 && band.area.x2 <= 80);
+    assert(band.area.y1 == 30 && band.area.y2 == 130);
+  }
 
-  // Redrawing after complete data loss must remove the previous segments.
+  // Complete data loss clears both the previous curve and shading.
   for (int n = 0; n < 7; ++n) sample(false);
   assert(!pwr::ui::trace(&line, data, 0, 0, 0, 7, 60, 100, 10, 14));
   draw(line);
-  assert(drawn_segments.empty());
+  assert(drawn_segments.empty() && shaded_bands.empty());
 
-  // Two isolated observations do not create a fabricated connecting line.
-  sample(true); sample(false); sample(true);
-  assert(!pwr::ui::trace(&line, data, 0, 0, 0, 3, 60, 100, 10, 14));
-  draw(line);
-  assert(drawn_segments.empty());
-
-  // A new adjacent reading makes the trace visible again.
-  sample(true);
+  // Interpolation uses both endpoints rather than holding the previous value.
+  sample(true, 10); sample(false); sample(true, 14);
   assert(pwr::ui::trace(&line, data, 0, 0, 0, 3, 60, 100, 10, 14));
   draw(line);
-  assert(drawn_segments.size() == 1);
-  std::puts("PASS plot gaps, timestamps, clearing, isolated points, recovery");
+  assert(drawn_segments.size() == 2 && shaded_bands.size() == 1);
+  assert(drawn_segments[0].p1.y == 130);
+  assert(drawn_segments[0].p2.y == 80);  // Midpoint = 12V.
+  assert(drawn_segments[1].p2.y == 30);
+  assert(data.estimated[1] && !data.estimated[0] && !data.estimated[2]);
+  float v, i;
+  assert(!pwr::get(0, 0, pwr::N - 2, v, i));  // Display interpolation never writes history.
+
+  // One observation is sufficient to extend the trailing gap.
+  sample(true, 12); sample(false); sample(false);
+  assert(pwr::ui::trace(&line, data, 0, 0, 0, 3, 60, 100, 10, 14));
+  draw(line);
+  assert(drawn_segments.size() == 2 && shaded_bands.size() == 1);
+  assert(data.points[0].y == data.points[1].y && data.points[1].y == data.points[2].y);
+
+  // Entirely measured windows have no shading, including after an estimated window.
+  sample(true); sample(true); sample(true);
+  assert(pwr::ui::trace(&line, data, 0, 0, 0, 3, 60, 100, 10, 14));
+  draw(line);
+  assert(drawn_segments.size() == 2 && shaded_bands.empty());
+
+  // A lone newest observation must not be drawn backwards into leading gaps.
+  sample(false); sample(false); sample(true);
+  assert(!pwr::ui::trace(&line, data, 0, 0, 0, 3, 60, 100, 10, 14));
+  draw(line);
+  assert(drawn_segments.empty() && shaded_bands.empty());
+  std::puts("PASS interpolation, subtle shading, leading/trailing gaps, clearing, history isolation");
 }

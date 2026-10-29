@@ -10,6 +10,18 @@ struct lv_draw_line_dsc_t {
   struct { void *layer; } base{};
   lv_point_precise_t p1{}, p2{};
 };
+struct lv_draw_rect_dsc_t {
+  struct { void *layer; } base{};
+  uint32_t bg_color = 0;
+  uint8_t bg_opa = 0;
+};
+struct ShadedBand { lv_draw_rect_dsc_t style; lv_area_t area; };
+inline std::vector<ShadedBand> shaded_bands;
+inline uint32_t lv_color_hex(uint32_t color) { return color; }
+inline void lv_draw_rect_dsc_init(lv_draw_rect_dsc_t *d) { *d = {}; }
+inline void lv_draw_rect(void *, lv_draw_rect_dsc_t *d, const lv_area_t *a) {
+  shaded_bands.push_back({*d, *a});
+}
 struct lv_event_t;
 struct lv_obj_t {
   int flags = 0;

@@ -33,4 +33,4 @@ g++ -std=c++17 -Wall -Wextra -Werror -pedantic -I tests/stubs -I . tests/plot_te
 /tmp/pwr-plot-test
 ```
 
-This exercises the actual plotting helper and its draw callback to verify separate segments across missing data, preserved time-axis positions, trailing gaps, clearing old traces, and recovery. It does not validate physical screen rendering. The firmware build checks the real LVGL API integration.
+This exercises the actual plotting helper and its draw callback to verify interpolation between observations, holding the last reading through trailing gaps, blank leading gaps, subtle shading of estimated regions, clearing old traces, and unchanged history data. It does not validate physical screen rendering. The firmware build checks the real LVGL API integration.
