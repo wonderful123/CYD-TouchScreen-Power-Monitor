@@ -5,6 +5,7 @@
 // samples of the level below. Pure storage: no clock, no UI.
 #include <cmath>
 #include "config.h"
+#include "direction.h"
 #include "peaks.h"
 
 namespace pwr {
@@ -71,7 +72,7 @@ inline bool get(int l, int c, int j, float &v, float &i) {
   const Sample &s = buf[l][c][(head[l] + j) % N];
   if (s.mv == INVALID_MV) return false;
   v = s.mv / 1000.0f;
-  i = s.cur / 100.0f;
+  i = directed(c, s.cur / 100.0f);
   return true;
 }
 

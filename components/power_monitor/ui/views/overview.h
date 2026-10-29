@@ -19,7 +19,7 @@ struct OverviewRow {
   lv_obj_t *a1, *a2;              // current peak: window / 24 h
   lv_obj_t *w1, *w2;              // power: window avg / 24 h peak
   lv_obj_t *spark;                // line widget object
-  lv_obj_t *zero;                 // zero-crossing rule
+  lv_obj_t *direction;            // NEG / MIXED over the plotted window
 };
 
 struct OverviewWidgets {
@@ -29,7 +29,7 @@ struct OverviewWidgets {
 };
 inline OverviewWidgets overview_widgets{};
 
-inline const char *const SPARK_HDR[SPARK_MODES] = {"W · LAST 5 MIN", "W · LAST 1 H", "W · LAST 6 H", "W · LAST 24 H"};
+inline const char *const SPARK_HDR[SPARK_MODES] = {"|W| · LAST 5 MIN", "|W| · LAST 1 H", "|W| · LAST 6 H", "|W| · LAST 24 H"};
 
 inline void clear_overview_row(const OverviewRow &r) {
   lv_label_set_text(r.v, "--");
@@ -44,13 +44,13 @@ inline void clear_overview_row(const OverviewRow &r) {
   lv_label_set_text(r.w1, "");
   lv_label_set_text(r.w2, "");
   lv_obj_add_flag(r.spark, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_add_flag(r.zero, LV_OBJ_FLAG_HIDDEN);
+  lv_label_set_text(r.direction, "");
 }
 
 inline void render_overview_row(int k, const OverviewRow &r, int spark_level, int spark_count) {
   char b[40];
-  const bool sign = (k == CH_BATTERY);
-  const float v = live.v[k], i = live.i[k], w = live.w[k];
+  const bool sign = true;
+  const float v = live.v[k], i = directed(k, live.i[k]), w = directed(k, live.w[k]);
   const lv_color_t col = lv_color_hex(fabsf(i) < 0.05f ? COL_DIM : COL_TEXT);
 
   fmt(b, sizeof(b), v, 2);
@@ -63,13 +63,13 @@ inline void render_overview_row(int k, const OverviewRow &r, int spark_level, in
   lv_obj_set_style_text_color(r.a, col, 0);
   lv_obj_set_style_text_color(r.w, col, 0);
 
-  snprintf(b, sizeof(b), "Ah %.1f", live.ah[k]);
+  snprintf(b, sizeof(b), "|Ah| %.1f", live.ah[k]);
   lv_label_set_text(r.ah, b);
 
   const Stats &s = st24[k];
   const Win w5 = win5(k);
 
-  snprintf(b, sizeof(b), s.any ? "24h %.0fWh" : "24h --", s.wh);
+  snprintf(b, sizeof(b), s.any ? "24h %+.0fWh" : "24h --", s.wh);
   lv_label_set_text(r.wh, b);
 
   if (w5.any) snprintf(b, sizeof(b), "%.2f–%.2f", w5.vmin, w5.vmax);
@@ -88,7 +88,7 @@ inline void render_overview_row(int k, const OverviewRow &r, int spark_level, in
   else snprintf(b, sizeof(b), "24h pk --");
   lv_label_set_text(r.a2, b);
 
-  if (w5.any) snprintf(b, sizeof(b), "avg %.0f", w5.wavg);
+  if (w5.any) snprintf(b, sizeof(b), "avg %+.0f", w5.wavg);
   else b[0] = '\0';
   lv_label_set_text(r.w1, b);
 
@@ -98,15 +98,8 @@ inline void render_overview_row(int k, const OverviewRow &r, int spark_level, in
 
   float mn, mx;
   scale(spark_level, 2, spark_count, 1 << k, &mn, &mx);
-  const bool shown = trace(r.spark, pts_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
-
-  if (shown && mn < 0.0f && mx > 0.0f) {
-    const int y0 = (int) lroundf((float) SPARK_H - (0.0f - mn) / (mx - mn) * (float) SPARK_H);
-    lv_obj_set_y(r.zero, lv_obj_get_y(r.spark) + y0);
-    lv_obj_clear_flag(r.zero, LV_OBJ_FLAG_HIDDEN);
-  } else {
-    lv_obj_add_flag(r.zero, LV_OBJ_FLAG_HIDDEN);
-  }
+  trace(r.spark, pts_spark[k], spark_level, k, 2, spark_count, SPARK_W, SPARK_H, mn, mx);
+  lv_label_set_text(r.direction, chart_direction(spark_level, k, spark_count));
 }
 
 inline void render_overview(int spark_mode) {

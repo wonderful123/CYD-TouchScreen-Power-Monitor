@@ -17,8 +17,8 @@ inline void apply_packet(const Packet &p) {
       live.valid[c] = false;
       continue;
     }
-    // Only the battery current is signed (charge +, discharge -); the others are magnitudes.
-    const float i = (c == CH_BATTERY) ? r.i : fabsf(r.i);
+    // Preserve the sensor sign for every channel; orientation is applied on read.
+    const float i = r.i;
     const float w = r.v * i;
 
     peak_update(c, r.v, i);

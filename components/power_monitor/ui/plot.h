@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include "lvgl.h"
+#include "chart_values.h"
 #include "../model/config.h"
 #include "../model/history.h"
 
@@ -30,7 +31,7 @@ inline void scale(int lvl, int m, int count, int mask, float *mn, float *mx) {
     for (int j = N - count; j < N; j++) {
       float v, i;
       if (!get(lvl, c, j, v, i)) continue;
-      const float y = metric(m, v, i);
+      const float y = chart_value(m, v, i);
       lo = std::min(lo, y);
       hi = std::max(hi, y);
     }
@@ -44,7 +45,7 @@ inline void scale(int lvl, int m, int count, int mask, float *mn, float *mx) {
     hi += 1.0f;
   }
   const float pad = (hi - lo) * 0.1f;
-  *mn = lo - pad;
+  *mn = std::max(0.0f, lo - pad);
   *mx = hi + pad;
 }
 
@@ -56,7 +57,7 @@ inline bool trace(lv_obj_t *line, pt_t *pts, int lvl, int c, int m, int count, i
   for (int k = 0; k < count; k++) {
     float v, i;
     if (get(lvl, c, N - count + k, v, i)) {
-      y = h - (metric(m, v, i) - mn) / (mx - mn) * h;
+      y = h - (chart_value(m, v, i) - mn) / (mx - mn) * h;
       if (first < 0) first = k;
     }
     if (first < 0) continue;

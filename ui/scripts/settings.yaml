@@ -5,6 +5,13 @@ script:
   - id: sync_settings
     then:
       - lambda: |-
+          const bool reverse[] = {id(reverse_charging), id(reverse_distribution), id(reverse_battery)};
+          lv_obj_t *switches[] = {id(reverse_charging_switch), id(reverse_distribution_switch), id(reverse_battery_switch)};
+          for (int c = 0; c < pwr::CH; ++c) {
+            pwr::reversed[c] = reverse[c];
+            if (reverse[c]) lv_obj_add_state(switches[c], LV_STATE_CHECKED);
+            else lv_obj_clear_state(switches[c], LV_STATE_CHECKED);
+          }
           float br = 0.0f;
           id(display_backlight).remote_values.as_brightness(&br);
           pwr::ui::render_settings(pwr::ui::SettingsValues{

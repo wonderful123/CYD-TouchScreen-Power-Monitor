@@ -150,7 +150,7 @@ widgets:
             id: set_summary
             text: ""
             x: 12
-            y: 366
+            y: 558
             width: 456
             height: 12
             styles: style_t_hint
@@ -159,7 +159,7 @@ widgets:
         - label:
             text: "UPTIME"
             x: 12
-            y: 390
+            y: 582
             width: 100
             height: 12
             styles: style_t_col
@@ -169,8 +169,147 @@ widgets:
             id: set_uptime
             text: "--"
             x: 168
-            y: 390
+            y: 582
             width: 300
             height: 12
             text_align: RIGHT
             styles: style_t_hint
+
+        - label:
+            text: "SHUNT DIRECTION"
+            x: 12
+            y: 366
+            width: 300
+            height: 12
+            styles: style_t_col
+            text_color: 0x46D3B5
+        - label:
+            text: "Reverse flips A/W and history; voltage is unchanged"
+            x: 12
+            y: 382
+            width: 456
+            height: 12
+            styles: style_t_hint
+
+        - obj:
+            x: 0
+            y: 402
+            width: 480
+            height: 44
+            styles: style_clear
+            scrollable: false
+            widgets:
+              - label:
+                  text: "REVERSE CHARGING"
+                  x: 12
+                  y: 7
+                  width: 390
+                  height: 12
+                  styles: style_t_col
+              - label:
+                  text: "Set positive for power from the charger"
+                  x: 12
+                  y: 23
+                  width: 390
+                  height: 12
+                  styles: style_t_hint
+              - switch:
+                  id: reverse_charging_switch
+                  x: 416
+                  y: 9
+                  width: 52
+                  height: 26
+                  styles: style_sleep_switch
+                  indicator:
+                    checked:
+                      bg_color: 0x46D3B5
+                  knob:
+                    styles: style_switch_knob
+                  on_value:
+                    then:
+                      - script.execute: reset_dim_timer
+                      - lambda: |-
+                          id(reverse_charging) = x;
+                          pwr::reversed[0] = x;
+
+        - obj:
+            x: 0
+            y: 450
+            width: 480
+            height: 44
+            styles: style_clear
+            scrollable: false
+            widgets:
+              - label:
+                  text: "REVERSE DISTRIBUTION"
+                  x: 12
+                  y: 7
+                  width: 390
+                  height: 12
+                  styles: style_t_col
+              - label:
+                  text: "Set positive for power to the loads"
+                  x: 12
+                  y: 23
+                  width: 390
+                  height: 12
+                  styles: style_t_hint
+              - switch:
+                  id: reverse_distribution_switch
+                  x: 416
+                  y: 9
+                  width: 52
+                  height: 26
+                  styles: style_sleep_switch
+                  indicator:
+                    checked:
+                      bg_color: 0x46D3B5
+                  knob:
+                    styles: style_switch_knob
+                  on_value:
+                    then:
+                      - script.execute: reset_dim_timer
+                      - lambda: |-
+                          id(reverse_distribution) = x;
+                          pwr::reversed[1] = x;
+
+        - obj:
+            x: 0
+            y: 498
+            width: 480
+            height: 44
+            styles: style_clear
+            scrollable: false
+            widgets:
+              - label:
+                  text: "REVERSE BATTERY"
+                  x: 12
+                  y: 7
+                  width: 390
+                  height: 12
+                  styles: style_t_col
+              - label:
+                  text: "Set positive for charging; negative for discharge"
+                  x: 12
+                  y: 23
+                  width: 390
+                  height: 12
+                  styles: style_t_hint
+              - switch:
+                  id: reverse_battery_switch
+                  x: 416
+                  y: 9
+                  width: 52
+                  height: 26
+                  styles: style_sleep_switch
+                  indicator:
+                    checked:
+                      bg_color: 0x46D3B5
+                  knob:
+                    styles: style_switch_knob
+                  on_value:
+                    then:
+                      - script.execute: reset_dim_timer
+                      - lambda: |-
+                          id(reverse_battery) = x;
+                          pwr::reversed[2] = x;

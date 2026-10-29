@@ -31,7 +31,7 @@ inline void render_stats() {
     const float vals[STATS_COLS] = {s.vmin, s.vmax, s.ipk, s.wpk, s.ah, s.wh};
     for (int c = 0; c < STATS_COLS; c++) {
       if (s.any) {
-        fmt(b, sizeof(b), vals[c], DEC[c]);
+        fmt(b, sizeof(b), vals[c], DEC[c], c >= 4);
       } else {
         snprintf(b, sizeof(b), "--");
       }
@@ -46,7 +46,7 @@ inline void render_stats() {
                                    (ds.hours > 0.0f) ? (ds.wh / ds.hours) : 0.0f};
   const bool ok[BALANCE_CELLS] = {bt.any, bt.any, bt.any, bt.any, bt.any, bt.any, bt.any, (ds.any && ds.hours > 0.0f)};
   static const int CD[BALANCE_CELLS] = {1, 1, 1, 1, 0, 0, 0, 0};
-  static const bool CS[BALANCE_CELLS] = {false, false, true, false, false, false, true, false};
+  static const bool CS[BALANCE_CELLS] = {false, false, true, false, false, false, true, true};
 
   for (int i = 0; i < BALANCE_CELLS; i++) {
     if (ok[i]) {

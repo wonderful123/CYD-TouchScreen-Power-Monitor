@@ -7,6 +7,9 @@ script:
     then:
       - lambda: |-
           using namespace pwr::ui;
+          pwr::reversed[0] = id(reverse_charging);
+          pwr::reversed[1] = id(reverse_distribution);
+          pwr::reversed[2] = id(reverse_battery);
 
           chrome_widgets = ChromeWidgets{
             .title = id(hdr_title),
@@ -22,13 +25,13 @@ script:
             .row = {
               OverviewRow{id(chg_v), id(chg_a), id(chg_w), id(chg_ah), id(chg_wh),
                           id(chg_v1), id(chg_v2), id(chg_a1), id(chg_a2), id(chg_w1), id(chg_w2),
-                          id(chg_spark)->obj, id(chg_zero)},
+                          id(chg_spark)->obj, id(chg_direction)},
               OverviewRow{id(dist_v), id(dist_a), id(dist_w), id(dist_ah), id(dist_wh),
                           id(dist_v1), id(dist_v2), id(dist_a1), id(dist_a2), id(dist_w1), id(dist_w2),
-                          id(dist_spark)->obj, id(dist_zero)},
+                          id(dist_spark)->obj, id(dist_direction)},
               OverviewRow{id(bat_v), id(bat_a), id(bat_w), id(bat_ah), id(bat_wh),
                           id(bat_v1), id(bat_v2), id(bat_a1), id(bat_a2), id(bat_w1), id(bat_w2),
-                          id(bat_spark)->obj, id(bat_zero)},
+                          id(bat_spark)->obj, id(bat_direction)},
             },
             .bound = true,
           };

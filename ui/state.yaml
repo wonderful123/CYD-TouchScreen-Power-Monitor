@@ -21,6 +21,21 @@ globals:
     type: int
     initial_value: '0'
 
+  - id: reverse_charging
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: reverse_distribution
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
+  - id: reverse_battery
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+
 interval:
   # Periodic active-page refresh dispatcher
   - interval: 500ms

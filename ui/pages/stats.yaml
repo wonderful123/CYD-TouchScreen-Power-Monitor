@@ -9,10 +9,10 @@ widgets:
   - label: {text: "CH", x: 12, y: 28, width: 30, height: 12, styles: style_t_col}
   - label: {text: "V MIN", x: 166, y: 28, width: 50, height: 12, styles: style_t_col_r}
   - label: {text: "V MAX", x: 220, y: 28, width: 50, height: 12, styles: style_t_col_r}
-  - label: {text: "A PK", x: 276, y: 28, width: 50, height: 12, styles: style_t_col_r}
-  - label: {text: "W PK", x: 332, y: 28, width: 50, height: 12, styles: style_t_col_r}
-  - label: {text: "AH", x: 378, y: 28, width: 50, height: 12, styles: style_t_col_r}
-  - label: {text: "WH", x: 422, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "|A| PK", x: 276, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "|W| PK", x: 332, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "NET AH", x: 378, y: 28, width: 50, height: 12, styles: style_t_col_r}
+  - label: {text: "NET WH", x: 422, y: 28, width: 50, height: 12, styles: style_t_col_r}
   - obj: {x: 8, y: 40, width: 464, height: 1, styles: style_rule}
 
   # ---- CHG ----------------------------------------------------------------------
@@ -67,5 +67,5 @@ widgets:
   - label: {id: cell5, text: "--", x: 128, y: 213, width: 110, height: 26, styles: style_t_lg}
   - label: {text: "NET WH", x: 244, y: 200, width: 110, height: 12, styles: style_t_col}
   - label: {id: cell6, text: "--", x: 244, y: 213, width: 110, height: 26, styles: style_t_lg}
-  - label: {text: "LOAD AVG W", x: 360, y: 200, width: 110, height: 12, styles: style_t_col}
+  - label: {text: "DIST AVG W", x: 360, y: 200, width: 110, height: 12, styles: style_t_col}
   - label: {id: cell7, text: "--", x: 360, y: 213, width: 110, height: 26, styles: style_t_lg}

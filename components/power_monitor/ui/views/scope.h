@@ -95,6 +95,9 @@ inline void render_scope(int m, int lv, int cur) {
   lv_label_set_text(W.x_start, XL[lv]);
   lv_label_set_text(W.x_mid, XM[lv]);
 
+  lv_label_set_text(W.metric_label[1], "|A|");
+  lv_label_set_text(W.metric_label[2], "|W|");
+
   // selector chips
   for (int i = 0; i < SCOPE_METRICS; i++) {
     const bool active = (i == m);
@@ -125,7 +128,8 @@ inline void render_scope(int m, int lv, int cur) {
     float v, i;
     if (get(lv, k, j, v, i)) {
       fmt(b, sizeof(b), metric(m, v, i), dec, m != 0);
-      snprintf(b2, sizeof(b2), "%s%s", b, UNITS[m]);
+      snprintf(b2, sizeof(b2), "%s%s %s", b, UNITS[m],
+               m == 0 ? "" : chart_direction(lv, k, N));
     } else {
       snprintf(b2, sizeof(b2), "--");
     }

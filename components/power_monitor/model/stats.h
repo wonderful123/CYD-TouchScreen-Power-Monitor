@@ -41,8 +41,8 @@ inline void compute_stats() {
       s.vmax = std::max(s.vmax, v);
       s.ipk = std::max(s.ipk, fabsf(i));
       s.wpk = std::max(s.wpk, fabsf(v * i));
-      s.ah += fabsf(i) * dt_h;
-      s.wh += fabsf(v * i) * dt_h;
+      s.ah += i * dt_h;
+      s.wh += v * i * dt_h;
       s.hours += dt_h;
       if (c == CH_BATTERY) {
         if (i > 0) {

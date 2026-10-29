@@ -10,7 +10,7 @@ widgets:
   - label: {text: "V", x: 120, y: 28, width: 40, height: 12, styles: style_t_col_r}
   - label: {text: "A", x: 208, y: 28, width: 40, height: 12, styles: style_t_col_r}
   - label: {text: "W", x: 282, y: 28, width: 40, height: 12, styles: style_t_col_r}
-  - label: {id: spark_hdr, text: "W · LAST 5 MIN", x: 334, y: 28, width: 138, height: 12, styles: style_t_col}
+  - label: {id: spark_hdr, text: "|W| · LAST 5 MIN", x: 334, y: 28, width: 138, height: 12, styles: style_t_col}
   - obj: {x: 8, y: 40, width: 464, height: 1, styles: style_rule}
 
   # ---- CHARGING ---------------------------------------------------------------
@@ -27,7 +27,7 @@ widgets:
   - label: {id: chg_a2, text: "", x: 178, y: 92, width: 70, height: 12, styles: style_t_xs_r}
   - label: {id: chg_w1, text: "", x: 250, y: 80, width: 72, height: 12, styles: style_t_xs_r}
   - label: {id: chg_w2, text: "", x: 250, y: 92, width: 72, height: 12, styles: style_t_xs_r}
-  - obj: {id: chg_zero, x: 334, y: 72, width: 138, height: 1, styles: style_rule, hidden: true}
+  - label: {id: chg_direction, text: "", x: 334, y: 98, width: 138, height: 12, styles: style_t_xs, text_align: RIGHT}
   - line:
       id: chg_spark
       x: 334
@@ -56,7 +56,7 @@ widgets:
   - label: {id: dist_a2, text: "", x: 178, y: 160, width: 70, height: 12, styles: style_t_xs_r}
   - label: {id: dist_w1, text: "", x: 250, y: 148, width: 72, height: 12, styles: style_t_xs_r}
   - label: {id: dist_w2, text: "", x: 250, y: 160, width: 72, height: 12, styles: style_t_xs_r}
-  - obj: {id: dist_zero, x: 334, y: 140, width: 138, height: 1, styles: style_rule, hidden: true}
+  - label: {id: dist_direction, text: "", x: 334, y: 166, width: 138, height: 12, styles: style_t_xs, text_align: RIGHT}
   - line:
       id: dist_spark
       x: 334
@@ -85,7 +85,7 @@ widgets:
   - label: {id: bat_a2, text: "", x: 178, y: 228, width: 70, height: 12, styles: style_t_xs_r}
   - label: {id: bat_w1, text: "", x: 250, y: 216, width: 72, height: 12, styles: style_t_xs_r}
   - label: {id: bat_w2, text: "", x: 250, y: 228, width: 72, height: 12, styles: style_t_xs_r}
-  - obj: {id: bat_zero, x: 334, y: 208, width: 138, height: 1, styles: style_rule, hidden: true}
+  - label: {id: bat_direction, text: "", x: 334, y: 234, width: 138, height: 12, styles: style_t_xs, text_align: RIGHT}
   - line:
       id: bat_spark
       x: 334
