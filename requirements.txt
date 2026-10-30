@@ -1,0 +1,2 @@
+# ESPHome version used to validate this firmware.
+esphome==2026.10.1

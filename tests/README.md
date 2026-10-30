@@ -14,8 +14,8 @@ signed net energy, battery charge/discharge balance and number formatting.
 Validate the device configuration and compile with ESPHome 2026.10.1:
 
 ```sh
-esphome config cyd-43.yaml
-esphome compile cyd-43.yaml
+esphome config main.yaml
+esphome compile main.yaml
 ```
 
 Use local `secrets.yaml` for the device's credentials; do not commit it.
