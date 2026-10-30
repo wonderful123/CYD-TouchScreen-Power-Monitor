@@ -88,3 +88,50 @@ g++ -std=c++17 -Wall -Wextra -Werror -pedantic -I tests/stubs -I . tests/plot_te
 ```
 
 This exercises the actual plotting helper and its draw callback to verify interpolation between observations, holding the last reading through trailing gaps, blank leading gaps, subtle shading of estimated regions, clearing old traces, and unchanged history data. It does not validate physical screen rendering. The firmware build checks the real LVGL API integration.
+
+## Light sleep lifecycle
+
+The sleep component keeps hardware sequencing in `light_sleep_touch.cpp` and its
+public interface in `light_sleep_touch.h`. `core/power.yaml` owns idle timing and
+background acquisition policy; `core/backlight.yaml` owns brightness restoration
+and fading. Packet arrival and the acquisition timeout share
+`finish_bg_acquisition`, then `request_light_sleep`.
+
+Run the component lifecycle regression against the real implementation with
+small ESPHome/ESP-IDF fakes:
+
+```sh
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+  -DUSE_WIFI -DUSE_ESP32_BLE -I tests/stubs/light_sleep_touch -I . \
+  tests/light_sleep_touch_test.cpp \
+  components/light_sleep_touch/light_sleep_touch.cpp -o /tmp/light-sleep-test
+/tmp/light-sleep-test
+python tests/light_sleep_touch_config_test.py
+```
+
+Use the Python environment containing ESPHome 2026.10.1. Schema checks cover the
+ESP32 dependency, active-low internal IRQ input and nonzero sleep duration.
+The lifecycle regression covers queued/idempotent entry, waiting for radio
+shutdown, shutdown timeout across clock rollover, touch cancellation before and
+after stopping radios, restoring only previously enabled radios, timer/touch/noise
+classification, and cleanup/recovery after each wake-source setup or sleep-entry
+failure. The stubs are isolated from the plotting test's LVGL stub.
+
+`on_before_sleep` must complete synchronously: delayed automation actions do not
+postpone hardware sleep. `on_wake` runs after wake, cancellation or failure, after
+requesting radio restoration. `get_wake_reason()` distinguishes these outcomes;
+`is_touch_wakeup()` is true only for a confirmed GPIO touch. Timer wakes and
+rejected GPIO glitches are background wakes. Cancellation, sleep failure and
+unexpected wake causes resume the interactive schedule instead of immediately
+retrying background sleep.
+
+After configuration validation and a firmware build, check on an ESP32-S3:
+
+- Boot and touch restart the active -> dim -> optional screen-off -> sleep schedule.
+- Timer wake acquires a BLE packet or reaches the 3.5-second fallback, then sleeps.
+- Sustained touch wakes restore brightness and resume touchscreen polling; GPIO
+  noise leaves the screen in its background state.
+- Touch during shutdown cancels sleep and returns to normal interaction.
+- Wi-Fi and BLE reconnect after repeated cycles, and brightness preview still works.
+
+Host tests do not validate physical IRQ levels, radio reconnection or display timing.

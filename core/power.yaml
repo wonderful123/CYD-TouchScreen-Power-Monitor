@@ -37,7 +37,7 @@ globals:
     type: bool
     initial_value: 'false'
 
-  # True only while awake on a timer wake purely to capture one BLE packet
+  # True while awake only to acquire a background BLE sample
   - id: bg_sampling
     type: bool
     initial_value: 'false'
@@ -68,17 +68,15 @@ light_sleep_touch:
     then:
       - lambda: |-
           pwr::note_wake();
-          if (id(sleep_manager).is_touch_wakeup()) {
-            id(bg_sampling) = false;
-            // Backlight is not at its active level after sleep; let reset_dim_timer restore it.
-            id(is_dimmed) = true;
+          if (!id(sleep_manager).is_background_wakeup()) {
+            // Restore the backlight and restart the interactive schedule.
             id(reset_dim_timer).execute();
           } else {
             id(bg_sampling) = true;
             id(bg_ble_acquisition_timeout).execute();
           }
-      # Only bring the touchscreen back for real (touch) wakes. On background BLE wakes it
-      # stays suspended so phantom touches can't light the screen or cancel sampling.
+      # Resume interaction after a touch, cancellation or error. Background BLE wakes
+      # keep polling suspended so phantom touches cannot cancel sampling.
       - if:
           condition:
             lambda: 'return !id(bg_sampling);'
@@ -87,44 +85,30 @@ light_sleep_touch:
             - component.resume: my_touchscreen
 
 script:
-  # Write the active level straight to the PWM output (the same path the dim/fade/off
-  # code uses), so it works from any state and doesn't depend on the light's own state
-  # or its default transition.
-  - id: restore_backlight
+  # Shared sleep entry for the idle schedule and background acquisition.
+  - id: request_light_sleep
     then:
       - lambda: |-
-          float active = 0.0f;
-          id(display_backlight).remote_values.as_brightness(&active);
-          id(gpio_backlight_pwm).set_level(id(display_backlight).gamma_correct_lut(active));
+          id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
+          id(sleep_manager).enter_light_sleep();
 
-  # Smooth backlight fade between two linear levels (0..1)
-  - id: fade_backlight
-    parameters:
-      from_level: float
-      to_level: float
+  - id: finish_bg_acquisition
     then:
-      - repeat:
-          count: 6
+      - if:
+          condition:
+            lambda: 'return id(bg_sampling);'
           then:
-            - output.set_level:
-                id: gpio_backlight_pwm
-                level: !lambda |-
-                  const float t = static_cast<float>(iteration + 1) / 6.0f;
-                  return id(display_backlight).gamma_correct_lut(
-                    from_level + (to_level - from_level) * t
-                  );
-            - delay: 60ms
+            - lambda: |-
+                pwr::tick();
+                pwr::compute_stats();
+            - script.execute: request_light_sleep
 
   # Fallback safety timeout for background BLE sampling: if no packet arrives within 3.5s, force tick and sleep.
   - id: bg_ble_acquisition_timeout
     mode: restart
     then:
       - delay: 3500ms
-      - lambda: |-
-          pwr::tick();
-          pwr::compute_stats();
-          id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
-          id(sleep_manager).enter_light_sleep();
+      - script.execute: finish_bg_acquisition
 
   # Idle schedule: active -> dimmed -> (screen off delay) -> screen off -> (remaining sleep delay)
   # -> light sleep with periodic BLE wake. Screen-off and sleep delays both count from the dim point.
@@ -184,9 +168,7 @@ script:
                   lambda: 'return id(sleep_timeout) > 0;'
                 then:
                   - delay: !lambda 'return (id(sleep_timeout) - id(screen_off_timeout)) * 1000;'
-                  - lambda: |-
-                      id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
-                      id(sleep_manager).enter_light_sleep();
+                  - script.execute: request_light_sleep
           else:
             # No separate screen-off stage: dimmed -> light sleep
             - if:
@@ -194,6 +176,4 @@ script:
                   lambda: 'return id(sleep_timeout) > 0;'
                 then:
                   - delay: !lambda 'return id(sleep_timeout) * 1000;'
-                  - lambda: |-
-                      id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
-                      id(sleep_manager).enter_light_sleep();
+                  - script.execute: request_light_sleep

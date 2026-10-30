@@ -14,3 +14,32 @@ light:
     name: Display Backlight
     id: display_backlight
     restore_mode: ALWAYS_ON
+
+script:
+  # Write the active level straight to the PWM output (the same path the dim/fade/off
+  # code uses), so it works from any state and doesn't depend on the light's own state
+  # or its default transition.
+  - id: restore_backlight
+    then:
+      - lambda: |-
+          float active = 0.0f;
+          id(display_backlight).remote_values.as_brightness(&active);
+          id(gpio_backlight_pwm).set_level(id(display_backlight).gamma_correct_lut(active));
+
+  # Smooth backlight fade between two linear levels (0..1)
+  - id: fade_backlight
+    parameters:
+      from_level: float
+      to_level: float
+    then:
+      - repeat:
+          count: 6
+          then:
+            - output.set_level:
+                id: gpio_backlight_pwm
+                level: !lambda |-
+                  const float t = static_cast<float>(iteration + 1) / 6.0f;
+                  return id(display_backlight).gamma_correct_lut(
+                    from_level + (to_level - from_level) * t
+                  );
+            - delay: 60ms

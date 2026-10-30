@@ -14,14 +14,11 @@ esp32_ble_tracker:
             // Decode + apply; anything that is not a power packet is ignored.
             if (!pwr::ingest_advert(x)) return;
 
-            // Timer wake for background sampling only (never at boot or after a touch wake):
+            // Background sampling wake only (never at boot or after a touch wake):
             // record the history tick, update stats, cancel the acquisition timeout and go straight back to sleep.
             if (id(bg_sampling)) {
-              pwr::tick();
-              pwr::compute_stats();
               id(bg_ble_acquisition_timeout).stop();
-              id(sleep_manager).set_sleep_duration(id(sleep_wake_interval) * 1000);
-              id(sleep_manager).enter_light_sleep();
+              id(finish_bg_acquisition).execute();
             }
 
 interval:
