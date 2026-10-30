@@ -177,6 +177,9 @@ requests and ring chronology. Physical radio/RTC/PSRAM behaviour and actual
 ESPHome scheduler timing still require a board; the firmware build validates
 the YAML/code-generation integration.
 
+Settings shows a readable `LAST REBOOT` reason directly below uptime. This is
+the cause of the current boot and remains unchanged across light-sleep wakes.
+
 For a device that appears to reset within two hours, collect serial logs across
 that interval (Wi-Fi/API disconnect during sleep):
 

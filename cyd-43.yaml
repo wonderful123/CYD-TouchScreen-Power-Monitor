@@ -49,6 +49,7 @@ time:
 
 # Root-level custom component declaration
 power_monitor:
+  id: power_monitor_component
 
 packages:
   # Core Platform

@@ -176,6 +176,25 @@ widgets:
             styles: style_t_hint
 
         - label:
+            text: "LAST REBOOT"
+            x: 12
+            y: 606
+            width: 150
+            height: 12
+            styles: style_t_col
+            text_color: 0x46D3B5
+
+        - label:
+            id: set_reboot_reason
+            text: "--"
+            x: 168
+            y: 606
+            width: 300
+            height: 12
+            text_align: RIGHT
+            styles: style_t_hint
+
+        - label:
             text: "SHUNT DIRECTION"
             x: 12
             y: 366

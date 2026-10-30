@@ -105,6 +105,7 @@ struct SettingsWidgets {
   lv_obj_t *sleep_switch;
   lv_obj_t *summary;
   lv_obj_t *uptime;
+  lv_obj_t *reboot_reason;
   bool bound;
 };
 inline SettingsWidgets settings_widgets{};
@@ -170,12 +171,13 @@ inline bool toggle_sleep_switch() {
   return on;
 }
 
-inline void render_uptime(uint64_t total_s) {
+inline void render_system_info(uint64_t total_s, const char *reboot_reason) {
   const SettingsWidgets &W = settings_widgets;
   if (!W.bound) return;
   char buf[32];
   format_uptime(total_s, buf, sizeof(buf));
   lv_label_set_text(W.uptime, buf);
+  lv_label_set_text(W.reboot_reason, reboot_reason);
 }
 
 }  // namespace pwr::ui

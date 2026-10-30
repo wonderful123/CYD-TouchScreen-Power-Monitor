@@ -42,7 +42,9 @@ script:
             - lambda: |-
                 // Nothing is on screen during background BLE sampling wakes
                 if (id(bg_sampling)) return;
-                pwr::ui::render_uptime((uint64_t) (esp_timer_get_time() / 1000000LL));
+                pwr::ui::render_system_info(
+                    static_cast<uint64_t>(esp_timer_get_time() / 1000000LL),
+                    id(power_monitor_component).get_reset_reason());
             - delay: 1s
 
   # Live feedback while adjusting the dim level: jump the backlight straight to the

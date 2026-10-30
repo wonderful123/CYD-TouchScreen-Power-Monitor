@@ -73,5 +73,6 @@ script:
             .sleep_switch = id(sleep_switch),
             .summary = id(set_summary),
             .uptime = id(set_uptime),
+            .reboot_reason = id(set_reboot_reason),
             .bound = true,
           };
