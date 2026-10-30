@@ -24,7 +24,7 @@ inline void tick() {
   const bool f = fresh();
 
   // Just woke and the first packet has not arrived yet: don't record a false gap.
-  if (!f && slot_started && (now - wake_ms) < WAKE_GRACE_MS) return;
+  if (wake_packet_pending && (now - wake_ms) < WAKE_GRACE_MS) return;
 
   uint32_t n = 1;
   bool expired = false;

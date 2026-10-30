@@ -17,6 +17,7 @@ constexpr int ESP_BLUEDROID_STATUS_UNINITIALIZED = 0;
 
 namespace fake {
 inline uint32_t now = 0;
+inline int64_t wall_us = 0;
 inline bool pin_high = true;
 inline bool release_on_debounce = false;
 inline int controller = 0, bluedroid = 0;
@@ -29,6 +30,7 @@ inline std::function<void()> on_sleep;
 inline esp_err_t configure() { return ++setup_step == fail_at ? -1 : ESP_OK; }
 inline void reset() {
   now = 0;
+  wall_us = 0;
   pin_high = true;
   release_on_debounce = false;
   controller = bluedroid = fail_at = setup_step = sleep_calls = cleanup_calls = 0;
@@ -43,6 +45,7 @@ namespace esphome {
 inline uint32_t millis() { return fake::now; }
 inline void delay(uint32_t ms) {
   fake::now += ms;
+  fake::wall_us += static_cast<int64_t>(ms) * 1000;
   if (ms == 15 && fake::release_on_debounce)
     fake::pin_high = true;
 }

@@ -101,13 +101,20 @@ script:
             - lambda: |-
                 pwr::tick();
                 pwr::compute_stats();
+                ESP_LOGD("power_monitor", "Background capture: uptime=%us fresh=%d seq=%d; history 10m=%d/%d/%d 24h=%d/%d/%d",
+                         static_cast<unsigned>(pwr::now_ms() / 1000), pwr::fresh(), pwr::last_seq,
+                         pwr::history_count(0, 0), pwr::history_count(0, 1), pwr::history_count(0, 2),
+                         pwr::history_count(3, 0), pwr::history_count(3, 1), pwr::history_count(3, 2));
             - script.execute: request_light_sleep
 
   # Fallback safety timeout for background BLE sampling: if no packet arrives within 3.5s, force tick and sleep.
   - id: bg_ble_acquisition_timeout
     mode: restart
     then:
-      - delay: 3500ms
+      - delay: !lambda 'return pwr::WAKE_GRACE_MS;'
+      - lambda: |-
+          ESP_LOGW("power_monitor", "Background BLE acquisition timed out after %u ms",
+                   static_cast<unsigned>(pwr::WAKE_GRACE_MS));
       - script.execute: finish_bg_acquisition
 
   # Idle schedule: active -> dimmed -> (screen off delay) -> screen off -> (remaining sleep delay)

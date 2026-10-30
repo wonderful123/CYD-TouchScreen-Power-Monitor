@@ -180,7 +180,8 @@ int main(int argc, char **argv) {
              std::strcmp(scenario, "exact_window_gap") == 0) {
     packet(0, 50); pwr::tick();
     const uint32_t gap = std::strcmp(scenario, "long_gap") == 0 ? 2 * 86400000u : 86400000u;
-    packet(gap, 12); pwr::note_wake(); pwr::tick();
+    // Match the device: the wake callback runs before BLE can deliver a packet.
+    pwr::host_now_ms = gap; pwr::note_wake(); packet(gap, 12); pwr::tick();
     float packet_peak = pwr::pk_cur[0].vmax / 1000.0f;
     for (int j = 0; j < pwr::N; ++j)
       packet_peak = std::max(packet_peak, pwr::pk_ring[0][j].vmax / 1000.0f);

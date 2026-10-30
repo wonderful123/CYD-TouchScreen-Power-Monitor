@@ -2,6 +2,8 @@
 // Small LVGL event/draw recorder for testing plot segments on the host.
 #include <cstdint>
 #include <vector>
+#include <string>
+using lv_color_t = uint32_t;
 #define LVGL_VERSION_MAJOR 9
 constexpr int LV_OBJ_FLAG_HIDDEN = 1, LV_PART_MAIN = 0, LV_EVENT_DRAW_MAIN = 1;
 struct lv_point_precise_t { int32_t x, y; };
@@ -24,6 +26,7 @@ inline void lv_draw_rect(void *, lv_draw_rect_dsc_t *d, const lv_area_t *a) {
 }
 struct lv_event_t;
 struct lv_obj_t {
+  std::string text;
   int flags = 0;
   void (*callback)(lv_event_t *) = nullptr;
   void *user_data = nullptr;
@@ -45,3 +48,6 @@ inline void lv_obj_add_event_cb(lv_obj_t *o, void (*cb)(lv_event_t *), int, void
 inline void lv_obj_add_flag(lv_obj_t *o, int f) { o->flags |= f; }
 inline void lv_obj_clear_flag(lv_obj_t *o, int f) { o->flags &= ~f; }
 inline void lv_obj_invalidate(lv_obj_t *) {}
+
+inline void lv_label_set_text(lv_obj_t *o, const char *text) { o->text = text; }
+inline void lv_obj_set_style_text_color(lv_obj_t *, lv_color_t, int) {}

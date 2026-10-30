@@ -31,40 +31,36 @@ inline OverviewWidgets overview_widgets{};
 
 inline const char *const SPARK_HDR[SPARK_MODES] = {"|W| · LAST 5 MIN", "|W| · LAST 1 H", "|W| · LAST 6 H", "|W| · LAST 24 H"};
 
-inline void clear_overview_row(const OverviewRow &r) {
+// Live values expire with the link. Stored statistics and plots do not.
+inline void clear_overview_live(const OverviewRow &r) {
   lv_label_set_text(r.v, "--");
   lv_label_set_text(r.a, "--");
   lv_label_set_text(r.w, "--");
   lv_label_set_text(r.ah, "Ah --");
-  lv_label_set_text(r.wh, "24h --");
-  lv_label_set_text(r.v1, "");
-  lv_label_set_text(r.v2, "");
-  lv_label_set_text(r.a1, "");
-  lv_label_set_text(r.a2, "");
-  lv_label_set_text(r.w1, "");
-  lv_label_set_text(r.w2, "");
-  lv_obj_add_flag(r.spark, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_text(r.direction, "");
 }
 
 inline void render_overview_row(int k, const OverviewRow &r, int spark_level, int spark_count) {
   char b[40];
-  const bool sign = true;
-  const float v = live.v[k], i = directed(k, live.i[k]), w = directed(k, live.w[k]);
-  const lv_color_t col = lv_color_hex(fabsf(i) < 0.05f ? COL_DIM : COL_TEXT);
+  if (fresh() && live.valid[k]) {
+    const bool sign = true;
+    const float v = live.v[k], i = directed(k, live.i[k]), w = directed(k, live.w[k]);
+    const lv_color_t col = lv_color_hex(fabsf(i) < 0.05f ? COL_DIM : COL_TEXT);
 
-  fmt(b, sizeof(b), v, 2);
-  lv_label_set_text(r.v, b);
-  fmt(b, sizeof(b), i, 2, sign);
-  lv_label_set_text(r.a, b);
-  fmt(b, sizeof(b), w, 0, sign);
-  lv_label_set_text(r.w, b);
-  lv_obj_set_style_text_color(r.v, col, 0);
-  lv_obj_set_style_text_color(r.a, col, 0);
-  lv_obj_set_style_text_color(r.w, col, 0);
+    fmt(b, sizeof(b), v, 2);
+    lv_label_set_text(r.v, b);
+    fmt(b, sizeof(b), i, 2, sign);
+    lv_label_set_text(r.a, b);
+    fmt(b, sizeof(b), w, 0, sign);
+    lv_label_set_text(r.w, b);
+    lv_obj_set_style_text_color(r.v, col, 0);
+    lv_obj_set_style_text_color(r.a, col, 0);
+    lv_obj_set_style_text_color(r.w, col, 0);
 
-  snprintf(b, sizeof(b), "|Ah| %.1f", live.ah[k]);
-  lv_label_set_text(r.ah, b);
+    snprintf(b, sizeof(b), "|Ah| %.1f", live.ah[k]);
+    lv_label_set_text(r.ah, b);
+  } else {
+    clear_overview_live(r);
+  }
 
   const Stats &s = st24[k];
   const Win w5 = win5(k);
@@ -108,14 +104,8 @@ inline void render_overview(int spark_mode) {
 
   compute_stats();
   lv_label_set_text(W.spark_hdr, SPARK_HDR[spark_mode]);
-  const bool ok_all = fresh();
-
   for (int k = 0; k < CH; k++) {
-    if (!ok_all || !live.valid[k]) {
-      clear_overview_row(W.row[k]);
-    } else {
-      render_overview_row(k, W.row[k], SPARK_LVL[spark_mode], SPARK_CNT[spark_mode]);
-    }
+    render_overview_row(k, W.row[k], SPARK_LVL[spark_mode], SPARK_CNT[spark_mode]);
   }
 }
 

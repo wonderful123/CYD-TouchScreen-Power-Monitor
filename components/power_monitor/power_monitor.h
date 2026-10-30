@@ -6,8 +6,9 @@ namespace power_monitor {
 
 class PowerMonitorComponent : public Component {
  public:
-  void setup() override {}
+  void setup() override;
   void loop() override {}
+  const char *get_reset_reason() const;
 };
 
 }  // namespace power_monitor

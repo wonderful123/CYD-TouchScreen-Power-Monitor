@@ -126,6 +126,13 @@ inline bool get(int l, int c, int j, float &v, float &i) {
   return true;
 }
 
+// Diagnostic count: retained observations/estimates, independent of link freshness.
+inline int history_count(int level, int channel) {
+  int count = 0;
+  for (const auto &sample : buf[level][channel]) count += sample.mv != INVALID_MV;
+  return count;
+}
+
 // Select the plotted quantity: 0 = V, 1 = A, 2 = W.
 inline float metric(int m, float v, float i) { return m == 0 ? v : (m == 1 ? i : v * i); }
 

@@ -135,3 +135,62 @@ After configuration validation and a firmware build, check on an ESP32-S3:
 - Wi-Fi and BLE reconnect after repeated cycles, and brightness preview still works.
 
 Host tests do not validate physical IRQ levels, radio reconnection or display timing.
+
+## Sleep-to-history and Overview regressions
+
+The device model uses `esp_timer_get_time()` rather than ESPHome `millis()`:
+ESPHome 2026.10.1 uses FreeRTOS ticks at 1kHz, while the explicit ESP-IDF
+`esp_light_sleep_start()` path compensates the ESP timer. The automatic PM sleep
+path separately calls `vTaskStepTick`; this application uses explicit sleep.
+The model's 32-bit millisecond arithmetic still handles normal clock rollover.
+
+`note_wake()` opens a first-packet acquisition window. The sampler and YAML
+acquisition timeout share `WAKE_GRACE_MS` (3500ms), so 500ms history polling cannot
+insert a false outage at 3000ms while BLE still has time to deliver a packet.
+The first received packet after waking refreshes the link even when its sequence
+byte aliases the pre-sleep byte. Unchanging sequences while continuously awake
+still become stale. `note_wake()` must run before the first packet of that wake.
+
+Overview now expires live V/A/W and the sensor's live Ah counter independently
+from stored graphs and calculated history totals. An offline channel or stale
+BLE link no longer hides retained history. Real acquisition failures still
+advance missing slots; old samples eventually expire from their rolling windows.
+There is no flash-backed history and no promise of surviving a reboot.
+
+```sh
+g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+  -DUSE_WIFI -DUSE_ESP32_BLE -I tests/stubs/light_sleep_touch -I tests/stubs -I . \
+  tests/sleep_history_test.cpp components/light_sleep_touch/light_sleep_touch.cpp \
+  -o /tmp/sleep-history-test
+for scenario in clock late_packet same_sequence overview_stale overview_offline cycles; do
+  /tmp/sleep-history-test "$scenario" || exit 1
+done
+```
+
+These tests use the device clock branch with separate simulated ESP timer and
+FreeRTOS tick clocks. The cycles scenario executes the real sleep component,
+wire decoder/ingest, wake callbacks, sampling, all four history rings, signed
+energy statistics and plot generation for two simulated days (5191 cycles).
+It checks unchanged history bytes across each hardware-sleep stub, delayed
+packets at 3.2 seconds, sequence aliases, failed acquisitions, radio restoration
+requests and ring chronology. Physical radio/RTC/PSRAM behaviour and actual
+ESPHome scheduler timing still require a board; the firmware build validates
+the YAML/code-generation integration.
+
+For a device that appears to reset within two hours, collect serial logs across
+that interval (Wi-Fi/API disconnect during sleep):
+
+- The ESPHome BLE tracker can explicitly reboot on a stuck scan or repeated
+  scan-restart failures, independently of the disabled Wi-Fi/API reboot timers.
+  Look for `Scan never terminated, rebooting` or `Scan could not restart` before
+  a new boot. These recovery reboots also erase RAM history.
+- `Boot: reset_reason=...` appearing again establishes an actual reboot. ESP-IDF
+  reason 1 is power-on, 3 software reset, 4 panic, 6 task watchdog, 9 brownout.
+- `Background BLE acquisition timed out` identifies a failed wake acquisition.
+- `Background capture` reports uptime, freshness, sequence and retained sample
+  counts for all three channels in the 10-minute and 24-hour rings. Short-window
+  counts can fall with missed acquisitions while older 24-hour buckets remain.
+
+The automated regressions passed together with the existing history, accounting,
+direction, plot and sleep lifecycle tests and an ESPHome 2026.10.1 firmware build.
+This does not establish the cause of a physical reboot without device logs.

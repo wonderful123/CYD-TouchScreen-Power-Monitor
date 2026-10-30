@@ -26,8 +26,9 @@ constexpr uint16_t INVALID_MV = 0xFFFF;
 constexpr uint32_t SLOT_MS = 2500;
 // Longest gap that is back-filled: a full 24 h worth of level-0 slots.
 constexpr uint32_t MAX_FILL = (uint32_t) N * FACTOR[1] * FACTOR[2] * FACTOR[3];
-// After any wake, hold off recording "no data" until the first BLE packet had a chance to arrive.
-constexpr uint32_t WAKE_GRACE_MS = 3000;
+// One shared deadline for wake sampling and the ESPHome acquisition timeout.
+// Do not write missing slots while the acquisition still has time to succeed.
+constexpr uint32_t WAKE_GRACE_MS = 3500;
 
 // ---- link / alarm thresholds
 constexpr uint32_t STALE_MS = 6000;  // no new sensor sample for this long = no data
